@@ -1,0 +1,81 @@
+.root {
+  position: relative;
+  width: 1911px;
+  height: 1000.29px;
+  background: #1f1f1f;
+  font-family: 'Arimo', sans-serif;
+}
+
+.topToolbar {
+  position: absolute;
+  left: 0; top: 0;
+  width: 1911px; height: 93.311px;
+  background: #1f1f1f;
+  overflow: hidden;
+}
+.topToolbar img { position: absolute; display: block; }
+
+.sidebar {
+  position: absolute;
+  left: 0; top: 93.31px;
+  width: 380.707px; height: 906.979px;
+  background: #1f1f1f;
+  overflow: hidden;
+}
+.sidebar img { position: absolute; display: block; }
+
+.weekCal {
+  position: absolute;
+  left: 380.71px; top: 93.31px;
+  width: 1433.25px; height: 877.119px;
+  background: #131314;
+  border-radius: 52.254px;
+  overflow: hidden;
+}
+.weekCal img { position: absolute; display: block; }
+
+.weekCalHeader {
+  position: absolute;
+  left: 0; top: 0;
+  width: 100%; height: 149.3px;
+  background: #131314;
+  z-index: 2;
+}
+
+.weekCalBody {
+  position: absolute;
+  left: 0; top: 149.3px;
+  width: 100%;
+  height: calc(100% - 149.3px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.weekCalBody::-webkit-scrollbar { display: none; }
+
+.googleApps {
+  position: absolute;
+  left: 1826px; top: 93px;
+  width: 74.766px; height: 908.402px;
+  background: #1f1f1f;
+  overflow: hidden;
+}
+.googleApps img { position: absolute; display: block; }
+
+.txt {
+  position: absolute;
+  white-space: nowrap;
+  word-break: break-word;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.pollingPanel {
+  animation: fadeIn 180ms ease-out both;
+}
+
+.pollingPanelContent {
+  animation: fadeIn 240ms ease-out 60ms both;
+}
