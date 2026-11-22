@@ -55,6 +55,14 @@
   }
 }
 
+.dialog-form-rows::-webkit-scrollbar { display: none; }
+.dialog-form-rows { scrollbar-width: none; }
+
+.time-picker-scroll { scrollbar-width: thin; scrollbar-color: #bdc1c6 transparent; }
+.time-picker-scroll::-webkit-scrollbar { width: 6px; }
+.time-picker-scroll::-webkit-scrollbar-track { background: transparent; }
+.time-picker-scroll::-webkit-scrollbar-thumb { background: #bdc1c6; border-radius: 999px; }
+
 @keyframes growDown {
   from { clip-path: inset(0 0 100% 0); }
   to   { clip-path: inset(0 0 0% 0); }

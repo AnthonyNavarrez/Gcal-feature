@@ -93,6 +93,135 @@ function mergeSlots(arr) {
   return result
 }
 
+const TODAY = new Date(2026, 10, 8) // Nov 8 2026
+
+function isSameDay(a, b) {
+  return a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+}
+
+const MONTH_NAMES = ['January','February','March','April','May','June','July','August','September','October','November','December']
+
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2), m = i % 2 === 0 ? '00' : '30'
+  const ampm = h < 12 ? 'am' : 'pm'
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${h12}:${m}${ampm}`
+})
+
+function parsePollDate(str) {
+  const months = {January:0,February:1,March:2,April:3,May:4,June:5,July:6,August:7,September:8,October:9,November:10,December:11}
+  const m = str.match(/\w+,\s+(\w+)\s+(\d+)/)
+  if (!m) return new Date(2026,10,9)
+  return new Date(2026, months[m[1]] ?? 10, parseInt(m[2]))
+}
+
+function parsePollTimes(timeStr) {
+  const m = timeStr.match(/(\d+:\d+)\s*[–-]\s*(\d+:\d+)(am|pm)/i)
+  if (!m) return { start:'12:00pm', end:'1:00pm' }
+  return { start: m[1]+m[3].toLowerCase(), end: m[2]+m[3].toLowerCase() }
+}
+
+function MiniCalendar({ selected, minDate, onSelect, anchorLeft, anchorTop }) {
+  const [viewYear, setViewYear] = useState(selected.getFullYear())
+  const [viewMonth, setViewMonth] = useState(selected.getMonth())
+
+  const firstDay = new Date(viewYear, viewMonth, 1).getDay()
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate()
+  const cells = []
+  for (let i = 0; i < firstDay; i++) cells.push(null)
+  for (let d = 1; d <= daysInMonth; d++) cells.push(d)
+  while (cells.length % 7 !== 0) cells.push(null)
+
+  function prevMonth() {
+    if (viewMonth === 0) { setViewYear(y => y - 1); setViewMonth(11) }
+    else setViewMonth(m => m - 1)
+  }
+  function nextMonth() {
+    if (viewMonth === 11) { setViewYear(y => y + 1); setViewMonth(0) }
+    else setViewMonth(m => m + 1)
+  }
+
+  const cellSize = 40
+
+  return (
+    <div style={{
+      position: 'fixed',
+      left: anchorLeft,
+      top: anchorTop,
+      width: '320px',
+      background: '#ffffff',
+      borderRadius: '12px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
+      zIndex: 400,
+      padding: '12px',
+      boxSizing: 'border-box',
+      fontFamily: "'Google Sans','Arimo',sans-serif",
+    }} onClick={e => e.stopPropagation()} onMouseDown={e => e.stopPropagation()}>
+      {/* Month navigation */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:'8px', paddingLeft:'4px' }}>
+        <span style={{ color:'#444746', fontSize:'16px', fontWeight:500 }}>
+          {MONTH_NAMES[viewMonth]} {viewYear}
+        </span>
+        <div style={{ display:'flex', gap:'4px' }}>
+          {['‹','›'].map((arrow, i) => (
+            <button key={arrow} onClick={i === 0 ? prevMonth : nextMonth} style={{
+              background:'none', border:'none', color:'#444746', fontSize:'20px',
+              cursor:'pointer', width:'32px', height:'32px', borderRadius:'50%',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              lineHeight:1,
+            }}
+            onMouseEnter={e => e.currentTarget.style.background='#f1f3f4'}
+            onMouseLeave={e => e.currentTarget.style.background='none'}
+            >{arrow}</button>
+          ))}
+        </div>
+      </div>
+
+      {/* Day headers */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:'4px' }}>
+        {['S','M','T','W','T','F','S'].map((d, i) => (
+          <div key={i} style={{ textAlign:'center', color:'#444746', fontSize:'13px', paddingBottom:'4px' }}>{d}</div>
+        ))}
+      </div>
+
+      {/* Day cells */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', rowGap:'2px' }}>
+        {cells.map((day, i) => {
+          if (!day) return <div key={i} />
+          const thisDate = new Date(viewYear, viewMonth, day)
+          const isSelected = isSameDay(thisDate, selected)
+          const isToday = isSameDay(thisDate, TODAY)
+          const isDisabled = minDate && thisDate < minDate && !isSameDay(thisDate, minDate)
+
+          let bg = 'none', color = '#444746', cursor = 'pointer'
+          if (isSelected) { bg = '#1a73e8'; color = '#fff' }
+          else if (isToday) { bg = '#e8f0fe'; color = '#1a73e8' }
+          if (isDisabled) { color = '#444746'; cursor = 'default' }
+
+          return (
+            <div key={i} style={{
+              textAlign:'center', fontSize:'14px', color, cursor,
+              height:`${cellSize}px`, display:'flex', alignItems:'center', justifyContent:'center',
+            }}
+            onClick={() => { if (!isDisabled) onSelect(thisDate) }}
+            onMouseEnter={e => { if (!isDisabled && !isSelected) e.currentTarget.style.background='#f1f3f4'; e.currentTarget.style.borderRadius='50%' }}
+            onMouseLeave={e => { e.currentTarget.style.background = isSelected ? '#1a73e8' : isToday ? '#e8f0fe' : 'none' }}
+            >
+              <div style={{
+                width:`${cellSize}px`, height:`${cellSize}px`, borderRadius:'50%',
+                background: bg, display:'flex', alignItems:'center', justifyContent:'center',
+                fontSize:'14px',
+              }}>{day}</div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 export default function DefaultScreen() {
   const [pollOpen, setPollOpen] = useState(false)
   const [dialogOpen, setDialogOpen] = useState(false)
@@ -114,9 +243,24 @@ export default function DefaultScreen() {
   const [hoveredSlot, setHoveredSlot] = useState(null)
   const [hoveredPoll, setHoveredPoll] = useState(null)
   const [pendingEventPopup, setPendingEventPopup] = useState(null)
+  const [editingOptionIdx, setEditingOptionIdx] = useState(null)
+  const [editDate, setEditDate] = useState(new Date(2026,10,9))
+  const [editStartTime, setEditStartTime] = useState('12:00pm')
+  const [editEndTime, setEditEndTime] = useState('1:00pm')
+  const [editDateOpen, setEditDateOpen] = useState(false)
+  const [editDatePos, setEditDatePos] = useState({left:0,top:0})
+  const [editStartOpen, setEditStartOpen] = useState(false)
+  const [editStartPos, setEditStartPos] = useState({left:0,top:0})
+  const [editEndOpen, setEditEndOpen] = useState(false)
+  const [editEndPos, setEditEndPos] = useState({left:0,top:0})
+  const editDateBtnRef = useRef(null)
+  const editStartBtnRef = useRef(null)
+  const editEndBtnRef = useRef(null)
+  const editTimeListRef = useRef(null)
   const nextId = useRef(0)
   const dragRef = useRef({ active: false })
   const dragHandlersRef = useRef({})
+  const pollDragRef = useRef({ active: false })
 
   const weekCalStyle = pollOpen
     ? { left: '381.3px', width: '964.477px', height: '871.02px',
@@ -551,20 +695,74 @@ export default function DefaultScreen() {
                 const GAP = 5
                 return { colIdx, s, e, left: nX(DIVIDERS[colIdx]) + GAP, width: nX(DIVIDERS[colIdx+1]) - nX(DIVIDERS[colIdx]) - GAP*2 }
               }
+              function designYToTimeStr(y) {
+                const totalMins = Math.round((y / HOUR_H) * 60 / 30) * 30
+                const h = Math.floor(totalMins / 60) % 24
+                const m = totalMins % 60
+                const ampm = h < 12 ? 'am' : 'pm'
+                const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+                return `${h12}:${m === 0 ? '00' : '30'}${ampm}`
+              }
+
               return (savedPoll.options || []).map((opt, i) => {
-                const coords = slotCoords(opt)
+                const liveOpt = (editingOptionIdx === i)
+                  ? { ...opt,
+                      date: editDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),
+                      time: `${editStartTime.replace(/(am|pm)$/i,'')} – ${editEndTime}` }
+                  : opt
+                const coords = slotCoords(liveOpt)
                 if (!coords) return null
                 const checked = checkedTimeOptions.has(i)
                 const hovered = hoveredSlot === i
                 if (!checked && !hovered) return null
+
+                function handleDragStart(e) {
+                  if (!checked) return
+                  e.stopPropagation()
+                  const rawCoords = slotCoords(opt)
+                  if (!rawCoords) return
+                  const initialY = getScrollY(e.clientY)
+                  const initialS = rawCoords.s
+                  const duration = rawCoords.e - rawCoords.s
+                  // Enter edit mode immediately
+                  const parsed = parsePollTimes(opt.time)
+                  const parsedDate = parsePollDate(opt.date)
+                  setEditDate(parsedDate)
+                  setEditStartTime(parsed.start)
+                  setEditEndTime(parsed.end)
+                  setEditingOptionIdx(i)
+                  pollDragRef.current = { active: true, initialY, initialS, duration, optIdx: i }
+
+                  function onMove(ev) {
+                    if (!pollDragRef.current.active) return
+                    const delta = getScrollY(ev.clientY) - pollDragRef.current.initialY
+                    const newS = Math.max(0, pollDragRef.current.initialS + delta)
+                    const newE = newS + pollDragRef.current.duration
+                    setEditStartTime(designYToTimeStr(newS))
+                    setEditEndTime(designYToTimeStr(newE))
+                  }
+                  function onUp() {
+                    pollDragRef.current.active = false
+                    window.removeEventListener('mousemove', onMove)
+                    window.removeEventListener('mouseup', onUp)
+                  }
+                  window.addEventListener('mousemove', onMove)
+                  window.addEventListener('mouseup', onUp)
+                }
+
                 return (
-                  <div key={i} style={{
-                    position:'absolute', left:`${coords.left}px`, top:`${coords.s}px`,
-                    width:`${coords.width}px`, height:`${coords.e - coords.s}px`,
-                    background: checked ? '#D3E3FD' : 'transparent',
-                    border: hovered || checked ? '2.5px solid #1a73e8' : 'none',
-                    borderRadius:'9px', pointerEvents:'none', boxSizing:'border-box',
-                  }} />
+                  <div key={i}
+                    onMouseDown={checked ? handleDragStart : undefined}
+                    style={{
+                      position:'absolute', left:`${coords.left}px`, top:`${coords.s}px`,
+                      width:`${coords.width}px`, height:`${coords.e - coords.s}px`,
+                      background: checked ? '#D3E3FD' : 'transparent',
+                      border: hovered || checked ? '2.5px solid #1a73e8' : 'none',
+                      borderRadius:'9px',
+                      pointerEvents: checked ? 'all' : 'none',
+                      boxSizing:'border-box',
+                      cursor: checked ? 'ns-resize' : 'default',
+                    }} />
                 )
               })
             })()}
@@ -784,40 +982,128 @@ export default function DefaultScreen() {
                   <div key={i}
                     onMouseEnter={() => setHoveredSlot(i)}
                     onMouseLeave={() => setHoveredSlot(null)}
-                    style={{display:'flex',gap:'48px',alignItems:'center'}}>
+                    style={{display:'flex',gap:'48px',alignItems: editingOptionIdx === i ? 'flex-start' : 'center'}}>
                     <div style={{display:'flex',flexDirection:'column',gap:'8px',width:'250px',flexShrink:0}}>
-                      <div style={{display:'flex',gap:'15px',alignItems:'flex-start'}}>
-                        <div onClick={() => setCheckedTimeOptions(prev => {
-                          const next = new Set(prev)
-                          if (next.has(i)) next.delete(i); else next.add(i)
-                          return next
-                        })} style={{
-                          width:'26px', height:'26px',
-                          border: checked ? 'none' : '1.495px solid #dadce0',
-                          borderRadius:'3px', boxSizing:'border-box', flexShrink:0, marginTop:'2px',
-                          background: checked ? '#1a73e8' : 'transparent',
-                          display:'flex', alignItems:'center', justifyContent:'center',
-                          cursor:'pointer',
-                        }}>
-                          {checked && <span style={{color:'white',fontSize:'14px',lineHeight:1,marginTop:'-1px'}}>✓</span>}
+                      {editingOptionIdx === i ? (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                          <div ref={editDateBtnRef}
+                            onClick={e => {
+                              e.stopPropagation()
+                              if (editDateOpen) { setEditDateOpen(false); return }
+                              if (editDateBtnRef.current) {
+                                const r = editDateBtnRef.current.getBoundingClientRect()
+                                setEditDatePos({left:r.left, top:r.bottom+6})
+                              }
+                              setEditDateOpen(true); setEditStartOpen(false); setEditEndOpen(false)
+                            }}
+                            style={{background:'#dee3ea',height:'39px',borderRadius:'5px',
+                              display:'flex',alignItems:'center',paddingLeft:'10px',paddingRight:'45px',
+                              cursor:'pointer',boxSizing:'border-box'}}>
+                            <span style={{fontSize:'18px',color:'#202124',fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap',lineHeight:'1.22'}}>
+                              {editDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+                            </span>
+                          </div>
+                          <div style={{display:'flex',gap:'3px',alignItems:'center'}}>
+                            <div ref={editStartBtnRef}
+                              onClick={e => {
+                                e.stopPropagation()
+                                if (editStartOpen) { setEditStartOpen(false); return }
+                                if (editStartBtnRef.current) {
+                                  const r = editStartBtnRef.current.getBoundingClientRect()
+                                  setEditStartPos({left:r.left, top:r.bottom+4})
+                                }
+                                setEditStartOpen(true); setEditDateOpen(false); setEditEndOpen(false)
+                              }}
+                              style={{background:'#dee3ea',height:'39px',width:'108px',borderRadius:'5px',
+                                display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+                              <span style={{fontSize:'20px',color:'#202124',fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap'}}>{editStartTime}</span>
+                            </div>
+                            <span style={{fontSize:'20px',color:'#202124',fontFamily:"'Google Sans','Arimo',sans-serif"}}>-</span>
+                            <div ref={editEndBtnRef}
+                              onClick={e => {
+                                e.stopPropagation()
+                                if (editEndOpen) { setEditEndOpen(false); return }
+                                if (editEndBtnRef.current) {
+                                  const r = editEndBtnRef.current.getBoundingClientRect()
+                                  setEditEndPos({left:r.left, top:r.bottom+4})
+                                }
+                                setEditEndOpen(true); setEditDateOpen(false); setEditStartOpen(false)
+                              }}
+                              style={{background:'#dee3ea',height:'39px',width:'108px',borderRadius:'5px',
+                                display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+                              <span style={{fontSize:'20px',color:'#202124',fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap'}}>{editEndTime}</span>
+                            </div>
+                          </div>
+                          <span style={{fontSize:'17px',color:'#5f6368',fontFamily:"'Google Sans','Arimo',sans-serif"}}>({opt.avail}/{opt.total} available)</span>
                         </div>
-                        <div style={{color:'#202124',fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",lineHeight:'1.3'}}>
-                          <p style={{margin:0,fontWeight:500,whiteSpace:'nowrap'}}>{opt.date}</p>
-                          <p style={{margin:0}}>{opt.time}</p>
-                        </div>
-                      </div>
-                      <span style={{color:'#5f6368',fontSize:'17px',fontFamily:"'Google Sans','Arimo',sans-serif",paddingLeft:'37px'}}>
-                        ({opt.avail}/{opt.total} available)
-                      </span>
+                      ) : (
+                        <>
+                          <div style={{display:'flex',gap:'15px',alignItems:'flex-start'}}>
+                            <div onClick={() => setCheckedTimeOptions(prev => {
+                              const next = new Set(prev)
+                              if (next.has(i)) next.delete(i); else next.add(i)
+                              return next
+                            })} style={{
+                              width:'26px', height:'26px',
+                              border: checked ? 'none' : '1.495px solid #dadce0',
+                              borderRadius:'3px', boxSizing:'border-box', flexShrink:0, marginTop:'2px',
+                              background: checked ? '#1a73e8' : 'transparent',
+                              display:'flex', alignItems:'center', justifyContent:'center',
+                              cursor:'pointer',
+                            }}>
+                              {checked && <span style={{color:'white',fontSize:'14px',lineHeight:1,marginTop:'-1px'}}>✓</span>}
+                            </div>
+                            <div style={{color:'#202124',fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",lineHeight:'1.3'}}>
+                              <p style={{margin:0,fontWeight:500,whiteSpace:'nowrap'}}>{opt.date}</p>
+                              <p style={{margin:0}}>{opt.time}</p>
+                            </div>
+                          </div>
+                          <span style={{color:'#5f6368',fontSize:'17px',fontFamily:"'Google Sans','Arimo',sans-serif",paddingLeft:'37px'}}>
+                            ({opt.avail}/{opt.total} available)
+                          </span>
+                        </>
+                      )}
                     </div>
                     <div style={{display:'flex',gap:'16px',alignItems:'center',flexShrink:0}}>
-                      <DonutChart numerator={displayN} denominator={opt.total} />
-                      <div style={{position:'relative',width:'28px',height:'28px',flexShrink:0}}>
-                        {[6,13,20].map(t=>(
-                          <div key={t} style={{position:'absolute',left:'12px',top:`${t}px`,
-                            width:'4px',height:'4px',background:'#5f6368',borderRadius:'50%'}} />
-                        ))}
-                      </div>
+                      {editingOptionIdx === i ? (
+                        <span
+                          onMouseDown={e => {
+                            e.stopPropagation()
+                            const newDate = editDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})
+                            const newTime = `${editStartTime.replace(/(am|pm)$/i,'')} – ${editEndTime}`
+                            setSavedPoll(prev => ({
+                              ...prev,
+                              options: prev.options.map((o, idx) =>
+                                idx === i ? { ...o, date: newDate, time: newTime } : o
+                              )
+                            }))
+                            setEditingOptionIdx(null)
+                            setEditDateOpen(false); setEditStartOpen(false); setEditEndOpen(false)
+                          }}
+                          style={{color:'#1a73e8',fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",cursor:'pointer',whiteSpace:'nowrap',marginTop:'10px'}}>
+                          Save
+                        </span>
+                      ) : (
+                        <>
+                          <DonutChart numerator={displayN} denominator={opt.total} />
+                          <div
+                            onMouseDown={e => {
+                              e.stopPropagation()
+                              const parsed = parsePollTimes(opt.time)
+                              setEditDate(parsePollDate(opt.date))
+                              setEditStartTime(parsed.start)
+                              setEditEndTime(parsed.end)
+                              setEditingOptionIdx(i)
+                              setEditDateOpen(false); setEditStartOpen(false); setEditEndOpen(false)
+                            }}
+                            style={{position:'relative',width:'28px',height:'28px',flexShrink:0,cursor:'pointer'}}>
+                            {[6,13,20].map(t=>(
+                              <div key={t} style={{position:'absolute',left:'12px',top:`${t}px`,
+                                width:'4px',height:'4px',background:'#5f6368',borderRadius:'50%'}} />
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 )})}
@@ -829,8 +1115,8 @@ export default function DefaultScreen() {
               </div>
               {/* Actions */}
               <div style={{position:'absolute',left:'200px',top:'784px',width:'260px',height:'75px'}}>
-                <span style={{position:'absolute',left:'16px',top:'26px',color:'#1a73e8',
-                  fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",cursor:'pointer'}}>More options</span>
+                <span style={{position:'absolute',left:'80px',top:'26px',color:'#1a73e8',
+                  fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",cursor:'pointer'}}>Edit</span>
                 <div onClick={() => {
                   const checked = (savedPoll.options || []).filter((_, i) => checkedTimeOptions.has(i))
                   if (checked.length) setCalendarPollEvents(p => [...p, ...checked.map(opt => ({ ...opt, title: savedPoll.title }))])
@@ -1061,33 +1347,96 @@ export default function DefaultScreen() {
               </div>
 
               {/* Options */}
-              <div style={{position:'absolute',left:'62px',top:'220px',display:'flex',flexDirection:'column',gap:'35px',width:'429px'}}>
+              <div style={{position:'absolute',left:'62px',top:'220px',display:'flex',flexDirection:'column',gap:'35px',width:'500px'}}>
                 {opts.map((opt, i) => (
                   <div key={i} style={{display:'flex',gap:'43px',alignItems:'center',width:'100%'}}>
                     {/* Left: checkbox + date/time + available */}
                     <div style={{display:'flex',flexDirection:'column',gap:'8px',width:'253px',flexShrink:0}}>
-                      <div style={{display:'flex',gap:'15px',alignItems:'center'}}>
-                        <div style={{
-                          width:'26.916px',height:'26.916px',flexShrink:0,boxSizing:'border-box',
-                          border: checked.has(i) ? 'none' : '1.495px solid #5f6368',
-                          borderRadius:'1.495px',
-                          background: checked.has(i) ? '#1a73e8' : 'transparent',
-                          display:'flex',alignItems:'center',justifyContent:'center',
-                        }}>
-                          {checked.has(i) && (
-                            <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
-                              <path d="M0.900391 6.46069L4.87231 10.4326L13.6105 0.900002" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
-                          )}
+                      {editingOptionIdx === i ? (
+                        <div style={{display:'flex',flexDirection:'column',gap:'10px'}}>
+                          {/* Date box */}
+                          <div ref={editDateBtnRef}
+                            onClick={e => {
+                              e.stopPropagation()
+                              if (editDateOpen) { setEditDateOpen(false); return }
+                              if (editDateBtnRef.current) {
+                                const r = editDateBtnRef.current.getBoundingClientRect()
+                                setEditDatePos({left: r.left, top: r.bottom + 6})
+                              }
+                              setEditDateOpen(true); setEditStartOpen(false); setEditEndOpen(false)
+                            }}
+                            style={{background:'#dee3ea', height:'39px', borderRadius:'5px',
+                              display:'flex', alignItems:'center', paddingLeft:'10px', paddingRight:'45px',
+                              cursor:'pointer', boxSizing:'border-box'}}>
+                            <span style={{fontSize:'20px', color:'#202124',
+                              fontFamily:"'Google Sans','Arimo',sans-serif", whiteSpace:'nowrap', lineHeight:'1.22'}}>
+                              {editDate.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+                            </span>
+                          </div>
+                          {/* Start - End time row */}
+                          <div style={{display:'flex', gap:'3px', alignItems:'center'}}>
+                            <div ref={editStartBtnRef}
+                              onClick={e => {
+                                e.stopPropagation()
+                                if (editStartOpen) { setEditStartOpen(false); return }
+                                if (editStartBtnRef.current) {
+                                  const r = editStartBtnRef.current.getBoundingClientRect()
+                                  setEditStartPos({left: r.left, top: r.bottom + 4})
+                                }
+                                setEditStartOpen(true); setEditDateOpen(false); setEditEndOpen(false)
+                              }}
+                              style={{background:'#dee3ea', height:'39px', width:'108px', borderRadius:'5px',
+                                display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer'}}>
+                              <span style={{fontSize:'20px', color:'#202124',
+                                fontFamily:"'Google Sans','Arimo',sans-serif", whiteSpace:'nowrap'}}>{editStartTime}</span>
+                            </div>
+                            <span style={{fontSize:'20px', color:'#202124',
+                              fontFamily:"'Google Sans','Arimo',sans-serif"}}>-</span>
+                            <div ref={editEndBtnRef}
+                              onClick={e => {
+                                e.stopPropagation()
+                                if (editEndOpen) { setEditEndOpen(false); return }
+                                if (editEndBtnRef.current) {
+                                  const r = editEndBtnRef.current.getBoundingClientRect()
+                                  setEditEndPos({left: r.left, top: r.bottom + 4})
+                                }
+                                setEditEndOpen(true); setEditDateOpen(false); setEditStartOpen(false)
+                              }}
+                              style={{background:'#dee3ea', height:'39px', width:'108px', borderRadius:'5px',
+                                display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer'}}>
+                              <span style={{fontSize:'20px', color:'#202124',
+                                fontFamily:"'Google Sans','Arimo',sans-serif", whiteSpace:'nowrap'}}>{editEndTime}</span>
+                            </div>
+                          </div>
+                          <span style={{fontSize:'19px',color:'#5f6368',
+                            fontFamily:"'Google Sans','Arimo',sans-serif"}}>({opt.avail}/{opt.total} available)</span>
                         </div>
-                        <div style={{fontSize:'20px',color:'#202124',lineHeight:'1.22'}}>
-                          <p style={{margin:0}}>{opt.date}</p>
-                          <p style={{margin:0}}>{opt.time}</p>
-                        </div>
-                      </div>
-                      <div style={{textAlign:'center',paddingRight:'50px'}}>
-                        <span style={{fontSize:'19px',color:'#5f6368'}}>({opt.avail}/{opt.total} available)</span>
-                      </div>
+                      ) : (
+                        <>
+                          <div style={{display:'flex',gap:'15px',alignItems:'center'}}>
+                            <div style={{
+                              width:'26.916px',height:'26.916px',flexShrink:0,boxSizing:'border-box',
+                              border: checked.has(i) ? 'none' : '1.495px solid #5f6368',
+                              borderRadius:'1.495px',
+                              background: checked.has(i) ? '#1a73e8' : 'transparent',
+                              display:'flex',alignItems:'center',justifyContent:'center',
+                            }}>
+                              {checked.has(i) && (
+                                <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
+                                  <path d="M0.900391 6.46069L4.87231 10.4326L13.6105 0.900002" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              )}
+                            </div>
+                            <div style={{fontSize:'20px',color:'#202124',lineHeight:'1.22'}}>
+                              <p style={{margin:0}}>{opt.date}</p>
+                              <p style={{margin:0}}>{opt.time}</p>
+                            </div>
+                          </div>
+                          <div style={{textAlign:'center',paddingRight:'50px'}}>
+                            <span style={{fontSize:'19px',color:'#5f6368'}}>({opt.avail}/{opt.total} available)</span>
+                          </div>
+                        </>
+                      )}
                     </div>
 
                     {/* Right: donut + fraction + three dots */}
@@ -1098,7 +1447,25 @@ export default function DefaultScreen() {
                           <div style={{flexShrink:0}}>
                             <DonutChart avail={votes} total={opt.total} />
                           </div>
-                          <img src="/assets/meeting-notes-options.svg" alt="" style={{width:'28px',height:'28px',flexShrink:0}} />
+                          <div
+                            style={{width:'28px',height:'28px',flexShrink:0,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center'}}
+                            onMouseDown={e => {
+                              e.stopPropagation()
+                              if (editingOptionIdx === i) {
+                                setEditingOptionIdx(null)
+                                setEditDateOpen(false); setEditStartOpen(false); setEditEndOpen(false)
+                              } else {
+                                const parsed = parsePollTimes(opt.time)
+                                setEditDate(parsePollDate(opt.date))
+                                setEditStartTime(parsed.start)
+                                setEditEndTime(parsed.end)
+                                setEditingOptionIdx(i)
+                                setEditDateOpen(false); setEditStartOpen(false); setEditEndOpen(false)
+                              }
+                            }}
+                          >
+                            <img src="/assets/meeting-notes-options.svg" alt="" style={{width:'28px',height:'28px',pointerEvents:'none'}} />
+                          </div>
                         </div>
                       )
                     })()}
@@ -1160,6 +1527,70 @@ export default function DefaultScreen() {
           </div>
         )
       })()}
+
+      {/* Edit option date picker */}
+      {editDateOpen && (
+        <MiniCalendar
+          selected={editDate}
+          minDate={null}
+          onSelect={d => { setEditDate(d); setEditDateOpen(false) }}
+          anchorLeft={editDatePos.left}
+          anchorTop={editDatePos.top}
+        />
+      )}
+
+      {/* Edit option start time picker */}
+      {editStartOpen && (
+        <div style={{
+          position:'fixed', left:`${editStartPos.left}px`, top:`${editStartPos.top}px`,
+          width:'420px', background:'#ffffff', borderRadius:'5px',
+          boxShadow:'0px 0px 10px 2px rgba(0,0,0,0.1)', zIndex:400,
+          fontFamily:"'Google Sans','Arimo',sans-serif", overflow:'hidden',
+        }} onClick={e => e.stopPropagation()}>
+          <div ref={editTimeListRef} className="time-picker-scroll" style={{maxHeight:'260px',overflowY:'auto',
+            display:'flex',flexDirection:'column',gap:'26px',padding:'16px 24px',boxSizing:'border-box'}}>
+            {TIME_OPTIONS.map(opt => (
+              <div key={opt} onClick={() => {
+                setEditStartTime(opt)
+                const idx = TIME_OPTIONS.indexOf(opt)
+                if (idx >= 0) setEditEndTime(TIME_OPTIONS[Math.min(idx + 2, TIME_OPTIONS.length - 1)])
+                setEditStartOpen(false)
+              }}
+                style={{cursor:'pointer',fontSize:'22px',lineHeight:'normal',
+                  color: opt === editStartTime ? '#1a73e8' : '#202124',
+                  fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap',
+                  borderRadius:'4px',padding:'4px 8px',margin:'-4px -8px'}}
+                onMouseEnter={e => e.currentTarget.style.background='#f1f3f4'}
+                onMouseLeave={e => e.currentTarget.style.background='transparent'}
+              >{opt}</div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Edit option end time picker */}
+      {editEndOpen && (
+        <div style={{
+          position:'fixed', left:`${editEndPos.left}px`, top:`${editEndPos.top}px`,
+          width:'420px', background:'#ffffff', borderRadius:'5px',
+          boxShadow:'0px 0px 10px 2px rgba(0,0,0,0.1)', zIndex:400,
+          fontFamily:"'Google Sans','Arimo',sans-serif", overflow:'hidden',
+        }} onClick={e => e.stopPropagation()}>
+          <div className="time-picker-scroll" style={{maxHeight:'260px',overflowY:'auto',
+            display:'flex',flexDirection:'column',gap:'26px',padding:'16px 24px',boxSizing:'border-box'}}>
+            {TIME_OPTIONS.map(opt => (
+              <div key={opt} onClick={() => { setEditEndTime(opt); setEditEndOpen(false) }}
+                style={{cursor:'pointer',fontSize:'22px',lineHeight:'normal',
+                  color: opt === editEndTime ? '#1a73e8' : '#202124',
+                  fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap',
+                  borderRadius:'4px',padding:'4px 8px',margin:'-4px -8px'}}
+                onMouseEnter={e => e.currentTarget.style.background='#f1f3f4'}
+                onMouseLeave={e => e.currentTarget.style.background='transparent'}
+              >{opt}</div>
+            ))}
+          </div>
+        </div>
+      )}
 
     </div>
   )
