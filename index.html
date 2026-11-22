@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Google Calendar – Default Screen</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" />
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #1f1f1f; font-family: 'Arimo', sans-serif; overflow: hidden; }
+
+    /* ── Root ────────────────────────────────────────────── */
+    .root {
+      position: relative;
+      width: 1911px;
+      height: 1000.29px;
+      background: #1f1f1f;
+    }
+
+    /* ── Top toolbar ─────────────────────────────────────── */
+    .top-toolbar {
+      position: absolute;
+      left: 0; top: 0;
+      width: 1911px; height: 93.311px;
+      background: #1f1f1f;
+      overflow: hidden;
+    }
+    .top-toolbar img { position: absolute; display: block; }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+    .sidebar {
+      position: absolute;
+      left: 0; top: 93.31px;
+      width: 380.707px; height: 906.979px;
+      background: #1f1f1f;
+      overflow: hidden;
+    }
+    .sidebar img { position: absolute; display: block; }
+
+    /* ── Week calendar ───────────────────────────────────── */
+    .week-cal {
+      position: absolute;
+      left: 380.71px; top: 93.31px;
+      width: 1433.25px; height: 877.119px;
+      background: #131314;
+      border-radius: 52.254px;
+      overflow: hidden;
+    }
+    .week-cal img { position: absolute; display: block; }
+
+    /* ── Google apps rail ────────────────────────────────── */
+    .google-apps {
+      position: absolute;
+      left: 1826px; top: 93px;
+      width: 74.766px; height: 908.402px;
+      background: #1f1f1f;
+      overflow: hidden;
+    }
+    .google-apps img { position: absolute; display: block; }
+
+    /* shared text helper */
+    .txt {
+      position: absolute;
+      white-space: nowrap;
+      word-break: break-word;
+    }
+
+    /* event block helper */
+    .ev {
+      position: absolute;
+      border-radius: 7.465px;
+      overflow: hidden;
+    }
+  </style>
+</head>
+<body>
+<div class="root">
+
+  <!-- ════════════════════════════════════════════════════
+       TOP TOOLBAR
+  ════════════════════════════════════════════════════ -->
+  <div class="top-toolbar">
+
+    <!-- Hamburger / Main menu -->
+    <img src="assets/main-menu.svg" alt="" style="left:37.32px;top:29.86px;width:29.859px;height:29.859px;">
+
+    <!-- Calendar logo mark -->
+    <div style="position:absolute;left:100.78px;top:14.93px;width:48.521px;height:55.986px;overflow:hidden;">
+      <img src="assets/calendar-mark.png" alt=""
+           style="position:absolute;width:3938.46%;height:1779.01%;left:-200%;top:-26.67%;max-width:none;">
+    </div>
+
+    <!-- "Calendar" wordmark -->
+    <span class="txt" style="left:167.96px;top:26.13px;color:#e3e3e3;font-size:32.099px;">Calendar</span>
+
+    <!-- Today button -->
+    <div style="position:absolute;left:380.71px;top:14.93px;width:134.367px;height:63.451px;
+                border:1.493px solid #606462;border-radius:37.324px;"></div>
+    <span class="txt" style="left:418.03px;top:33.59px;color:#e3e3e3;font-size:20.902px;">Today</span>
+
+    <!-- Prev / Next week arrows -->
+    <img src="assets/previous-week.svg" alt="" style="left:556.13px;top:29.86px;width:26.127px;height:26.127px;">
+    <img src="assets/next-week.svg"     alt="" style="left:604.65px;top:29.86px;width:26.127px;height:26.127px;">
+
+    <!-- Month/Year label -->
+    <span class="txt" style="left:668.1px;top:27.99px;color:#e3e3e3;font-size:31.352px;">November 2026</span>
+
+    <!-- Search / Help / Settings icons -->
+    <img src="assets/search.svg"   alt="" style="left:1067.47px;top:29.86px;width:29.859px;height:29.859px;">
+    <img src="assets/help.svg"     alt="" style="left:1130.92px;top:29.86px;width:29.859px;height:29.859px;">
+    <img src="assets/settings.svg" alt="" style="left:1198.11px;top:29.86px;width:29.859px;height:29.859px;">
+
+    <!-- Week view selector -->
+    <div style="position:absolute;left:1265.29px;top:14.93px;width:149.297px;height:63.451px;
+                border:1.493px solid #606462;border-radius:37.324px;"></div>
+    <span class="txt" style="left:1298.88px;top:33.59px;color:#e3e3e3;font-size:21.275px;">Week</span>
+    <img src="assets/view-menu.svg" alt="" style="left:1369.8px;top:33.59px;width:18.662px;height:18.662px;">
+
+    <!-- Calendar / Tasks toggle -->
+    <div style="position:absolute;left:1433.25px;top:14.93px;width:156.762px;height:63.451px;
+                border:1.493px solid #606462;border-radius:37.324px;"></div>
+    <!-- Calendar selected pill -->
+    <div style="position:absolute;left:1433.25px;top:14.93px;width:78.381px;height:63.451px;
+                background:#235377;border-radius:37.324px;"></div>
+    <img src="assets/calendar-view.svg" alt="" style="left:1459.38px;top:29.86px;width:26.127px;height:26.127px;">
+    <img src="assets/task-view.svg"     alt="" style="left:1534.03px;top:29.86px;width:29.859px;height:29.859px;">
+
+    <!-- App launcher 3×3 dots -->
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1623.6px;top:29.86px;"></div>
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1632.19px;top:29.86px;"></div>
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1640.77px;top:29.86px;"></div>
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1623.6px;top:38.44px;"></div>
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1632.19px;top:38.44px;"></div>
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1640.77px;top:38.44px;"></div>
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1623.6px;top:47.03px;"></div>
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1632.19px;top:47.03px;"></div>
+    <div style="position:absolute;background:#e3e3e3;border-radius:2.239px;width:4.479px;height:4.479px;left:1640.77px;top:47.03px;"></div>
+
+    <!-- Account control / UCLA brand -->
+    <div style="position:absolute;left:1679.59px;top:11.2px;width:212.748px;height:70.916px;
+                border:1.493px solid #858886;border-radius:44.789px;"></div>
+    <div style="position:absolute;left:1701.98px;top:26.13px;width:115.705px;height:41.057px;overflow:hidden;">
+      <img src="assets/ucla-brand.png" alt=""
+           style="position:absolute;width:1651.61%;height:2436.36%;left:-1470.97%;top:-63.64%;max-width:none;">
+    </div>
+    <!-- Avatar -->
+    <div style="position:absolute;left:1832.62px;top:22.39px;width:48.521px;height:48.521px;
+                background:#285c9a;border-radius:24.261px;"></div>
+    <span class="txt" style="left:1847.55px;top:29.86px;color:#e3e3e3;font-size:22.395px;">A</span>
+  </div><!-- /top-toolbar -->
+
+
+  <!-- ════════════════════════════════════════════════════
+       SIDEBAR
+  ════════════════════════════════════════════════════ -->
+  <div class="sidebar">
+
+    <!-- Create button -->
+    <div style="position:absolute;left:22.39px;top:22.39px;width:205.283px;height:82.113px;
+                background:#373b3d;border-radius:26.127px;"></div>
+    <img src="assets/create.svg" alt="" style="left:44.79px;top:44.79px;width:33.592px;height:33.592px;">
+    <span class="txt" style="left:100.78px;top:52.25px;color:#e3e3e3;font-size:20.155px;">Create</span>
+    <img src="assets/view-menu.svg" alt="" style="left:182.89px;top:52.25px;width:18.662px;height:18.662px;">
+
+    <!-- Mini-calendar header -->
+    <span class="txt" style="left:41.06px;top:156.76px;color:#e3e3e3;font-size:21.275px;font-weight:700;">November 2026</span>
+    <img src="assets/previous-month.svg" alt="" style="left:276.2px;top:156.76px;width:18.662px;height:18.662px;">
+    <img src="assets/next-month.svg"     alt="" style="left:320.99px;top:156.76px;width:18.662px;height:18.662px;">
+
+    <!-- Day-of-week headers -->
+    <span class="txt" style="left:44.79px;top:201.55px;color:#c4c7c5;font-size:16.423px;">S</span>
+    <span class="txt" style="left:91.07px;top:201.55px;color:#c4c7c5;font-size:16.423px;">M</span>
+    <span class="txt" style="left:137.35px;top:201.55px;color:#c4c7c5;font-size:16.423px;">T</span>
+    <span class="txt" style="left:183.64px;top:201.55px;color:#c4c7c5;font-size:16.423px;">W</span>
+    <span class="txt" style="left:229.92px;top:201.55px;color:#c4c7c5;font-size:16.423px;">T</span>
+    <span class="txt" style="left:276.2px;top:201.55px;color:#c4c7c5;font-size:16.423px;">F</span>
+    <span class="txt" style="left:322.48px;top:201.55px;color:#c4c7c5;font-size:16.423px;">S</span>
+
+    <!-- Week 1: 1–7 -->
+    <span class="txt" style="left:44.79px;top:238.88px;color:#e3e3e3;font-size:16.049px;">1</span>
+    <span class="txt" style="left:91.07px;top:238.88px;color:#e3e3e3;font-size:16.049px;">2</span>
+    <span class="txt" style="left:137.35px;top:238.88px;color:#e3e3e3;font-size:16.049px;">3</span>
+    <span class="txt" style="left:183.64px;top:238.88px;color:#e3e3e3;font-size:16.049px;">4</span>
+    <span class="txt" style="left:229.92px;top:238.88px;color:#e3e3e3;font-size:16.049px;">5</span>
+    <span class="txt" style="left:276.2px;top:238.88px;color:#e3e3e3;font-size:16.049px;">6</span>
+    <span class="txt" style="left:322.48px;top:238.88px;color:#e3e3e3;font-size:16.049px;">7</span>
+
+    <!-- Week 2: 8–14  (10 is selected) -->
+    <span class="txt" style="left:44.79px;top:277.69px;color:#e3e3e3;font-size:16.049px;">8</span>
+    <!-- Selected circle for Nov 10 -->
+    <div style="position:absolute;left:126.9px;top:269.12px;width:36.204px;height:36.204px;
+                background:#a8c7fa;border-radius:18.102px;"></div>
+    <span class="txt" style="left:91.07px;top:277.69px;color:#e3e3e3;font-size:16.049px;">9</span>
+    <span class="txt" style="left:133.62px;top:277.69px;color:#174176;font-size:16.049px;">10</span>
+    <span class="txt" style="left:179.9px;top:277.69px;color:#e3e3e3;font-size:16.049px;">11</span>
+    <span class="txt" style="left:226.18px;top:277.69px;color:#e3e3e3;font-size:16.049px;">12</span>
+    <span class="txt" style="left:272.47px;top:277.69px;color:#e3e3e3;font-size:16.049px;">13</span>
+    <span class="txt" style="left:318.75px;top:277.69px;color:#e3e3e3;font-size:16.049px;">14</span>
+
+    <!-- Week 3: 15–21 -->
+    <span class="txt" style="left:41.06px;top:316.51px;color:#e3e3e3;font-size:16.049px;">15</span>
+    <span class="txt" style="left:87.34px;top:316.51px;color:#e3e3e3;font-size:16.049px;">16</span>
+    <span class="txt" style="left:133.62px;top:316.51px;color:#e3e3e3;font-size:16.049px;">17</span>
+    <span class="txt" style="left:179.9px;top:316.51px;color:#e3e3e3;font-size:16.049px;">18</span>
+    <span class="txt" style="left:226.18px;top:316.51px;color:#e3e3e3;font-size:16.049px;">19</span>
+    <span class="txt" style="left:272.47px;top:316.51px;color:#e3e3e3;font-size:16.049px;">20</span>
+    <span class="txt" style="left:318.75px;top:316.51px;color:#e3e3e3;font-size:16.049px;">21</span>
+
+    <!-- Week 4: 22–28 -->
+    <span class="txt" style="left:41.06px;top:355.33px;color:#e3e3e3;font-size:16.049px;">22</span>
+    <span class="txt" style="left:87.34px;top:355.33px;color:#e3e3e3;font-size:16.049px;">23</span>
+    <span class="txt" style="left:133.62px;top:355.33px;color:#e3e3e3;font-size:16.049px;">24</span>
+    <span class="txt" style="left:179.9px;top:355.33px;color:#e3e3e3;font-size:16.049px;">25</span>
+    <span class="txt" style="left:226.18px;top:355.33px;color:#e3e3e3;font-size:16.049px;">26</span>
+    <span class="txt" style="left:272.47px;top:355.33px;color:#e3e3e3;font-size:16.049px;">27</span>
+    <span class="txt" style="left:318.75px;top:355.33px;color:#e3e3e3;font-size:16.049px;">28</span>
+
+    <!-- Week 5: 29–30 + Dec overflow (greyed) -->
+    <span class="txt" style="left:41.06px;top:394.14px;color:#e3e3e3;font-size:16.049px;">29</span>
+    <span class="txt" style="left:87.34px;top:394.14px;color:#e3e3e3;font-size:16.049px;">30</span>
+    <span class="txt" style="left:137.35px;top:394.14px;color:#949895;font-size:16.049px;">1</span>
+    <span class="txt" style="left:183.64px;top:394.14px;color:#949895;font-size:16.049px;">2</span>
+    <span class="txt" style="left:229.92px;top:394.14px;color:#949895;font-size:16.049px;">3</span>
+    <span class="txt" style="left:276.2px;top:394.14px;color:#949895;font-size:16.049px;">4</span>
+    <span class="txt" style="left:322.48px;top:394.14px;color:#949895;font-size:16.049px;">5</span>
+
+    <!-- Dec overflow row 2 -->
+    <span class="txt" style="left:44.79px;top:432.96px;color:#949895;font-size:16.049px;">6</span>
+    <span class="txt" style="left:91.07px;top:432.96px;color:#949895;font-size:16.049px;">7</span>
+    <span class="txt" style="left:137.35px;top:432.96px;color:#949895;font-size:16.049px;">8</span>
+    <span class="txt" style="left:183.64px;top:432.96px;color:#949895;font-size:16.049px;">9</span>
+    <span class="txt" style="left:226.18px;top:432.96px;color:#949895;font-size:16.049px;">10</span>
+    <span class="txt" style="left:272.47px;top:432.96px;color:#949895;font-size:16.049px;">11</span>
+    <span class="txt" style="left:318.75px;top:432.96px;color:#949895;font-size:16.049px;">12</span>
+
+    <!-- Meet with... -->
+    <span class="txt" style="left:41.06px;top:462.82px;color:#e3e3e3;font-size:21.648px;font-weight:700;">Meet with...</span>
+    <div style="position:absolute;left:41.06px;top:496.41px;width:298.594px;height:59.719px;
+                background:#282c2d;border-radius:3.732px;"></div>
+    <img src="assets/people.svg" alt="" style="left:63.45px;top:511.34px;width:26.127px;height:26.127px;">
+    <span class="txt" style="left:111.97px;top:515.07px;color:#c4c7c5;font-size:20.528px;">Search for people</span>
+
+    <!-- Booking pages -->
+    <span class="txt" style="left:41.06px;top:593.46px;color:#e3e3e3;font-size:21.648px;">Booking pages</span>
+    <img src="assets/add-booking-page.svg"    alt="" style="left:265px;top:589.72px;width:26.127px;height:26.127px;">
+    <img src="assets/expand-booking-pages.svg" alt="" style="left:313.52px;top:593.46px;width:26.127px;height:26.127px;">
+
+    <!-- Time insights -->
+    <span class="txt" style="left:41.06px;top:671.84px;color:#e3e3e3;font-size:21.648px;">Time insights</span>
+    <img src="assets/insights-chart.svg"      alt="" style="left:268.73px;top:668.1px;width:29.859px;height:29.859px;">
+    <img src="assets/expand-booking-pages.svg" alt="" style="left:313.52px;top:671.84px;width:26.127px;height:26.127px;">
+
+    <!-- My calendars -->
+    <span class="txt" style="left:41.06px;top:750.22px;color:#e3e3e3;font-size:22.021px;">My calendars</span>
+    <img src="assets/collapse-calendars.svg" alt="" style="left:313.52px;top:750.22px;width:26.127px;height:26.127px;">
+
+    <!-- UCLA Events (checked) -->
+    <div style="position:absolute;left:41.06px;top:802.47px;width:25.007px;height:25.007px;
+                background:#8eb5bd;border-radius:1.493px;"></div>
+    <img src="assets/selected.svg" alt="" style="left:43.67px;top:805.46px;width:19.035px;height:19.035px;">
+    <span class="txt" style="left:82.11px;top:806.2px;color:#e3e3e3;font-size:20.902px;">Ucla Events</span>
+
+    <!-- Birthdays (unchecked) -->
+    <div style="position:absolute;left:41.06px;top:843.53px;width:25.007px;height:25.007px;
+                border:1.493px solid #51a377;border-radius:1.493px;"></div>
+    <span class="txt" style="left:82.11px;top:847.26px;color:#e3e3e3;font-size:20.902px;">Birthdays</span>
+
+    <!-- Classes (checked) -->
+    <div style="position:absolute;left:41.06px;top:884.58px;width:25.007px;height:25.007px;
+                background:#7a9bcd;border-radius:1.493px;"></div>
+    <img src="assets/selected.svg" alt="" style="left:43.67px;top:887.57px;width:19.035px;height:19.035px;">
+    <span class="txt" style="left:82.11px;top:888.32px;color:#e3e3e3;font-size:20.902px;">Classes</span>
+
+    <!-- Scrollbar -->
+    <div style="position:absolute;left:369.51px;top:126.9px;width:11.197px;height:466.553px;
+                background:#606060;border-radius:5.599px;"></div>
+  </div><!-- /sidebar -->
+
+
+  <!-- ════════════════════════════════════════════════════
+       WEEK CALENDAR
+  ════════════════════════════════════════════════════ -->
+  <div class="week-cal">
+
+    <!-- Day headers -->
+    <span class="txt" style="left:173.18px;top:20.16px;color:#c4c7c5;font-size:16.049px;font-weight:700;line-height:20.528px;">SUN</span>
+    <span class="txt" style="left:175.42px;top:59.35px;color:#e3e3e3;font-size:38.817px;line-height:20.528px;">8</span>
+
+    <span class="txt" style="left:359.81px;top:20.16px;color:#c4c7c5;font-size:16.049px;font-weight:700;line-height:20.528px;">MON</span>
+    <span class="txt" style="left:362.04px;top:59.35px;color:#e3e3e3;font-size:38.817px;line-height:20.528px;">9</span>
+
+    <!-- Tuesday selected -->
+    <span class="txt" style="left:546.43px;top:20.16px;color:#a8c7fa;font-size:16.049px;font-weight:700;line-height:20.528px;">TUE</span>
+    <div style="position:absolute;left:528.14px;top:44.04px;width:69.05px;height:69.05px;
+                background:#a8c7fa;border-radius:37.324px;"></div>
+    <span class="txt" style="left:541.2px;top:59.35px;color:#173769;font-size:38.817px;line-height:20.528px;">10</span>
+
+    <span class="txt" style="left:733.05px;top:20.16px;color:#c4c7c5;font-size:16.049px;font-weight:700;line-height:20.528px;">WED</span>
+    <span class="txt" style="left:727.82px;top:59.35px;color:#e3e3e3;font-size:38.817px;line-height:20.528px;">11</span>
+
+    <span class="txt" style="left:919.67px;top:20.16px;color:#c4c7c5;font-size:16.049px;font-weight:700;line-height:20.528px;">THU</span>
+    <span class="txt" style="left:914.44px;top:59.35px;color:#e3e3e3;font-size:38.817px;line-height:20.528px;">12</span>
+
+    <span class="txt" style="left:1106.29px;top:20.16px;color:#c4c7c5;font-size:16.049px;font-weight:700;line-height:20.528px;">FRI</span>
+    <span class="txt" style="left:1101.06px;top:59.35px;color:#e3e3e3;font-size:38.817px;line-height:20.528px;">13</span>
+
+    <span class="txt" style="left:1292.91px;top:20.16px;color:#c4c7c5;font-size:16.049px;font-weight:700;line-height:20.528px;">SAT</span>
+    <span class="txt" style="left:1287.69px;top:59.35px;color:#e3e3e3;font-size:38.817px;line-height:20.528px;">14</span>
+
+    <!-- GMT label -->
+    <span class="txt" style="left:16.8px;top:126.9px;color:#e3e3e3;font-size:15.303px;line-height:20.528px;">GMT-8</span>
+
+    <!-- Vertical day dividers -->
+    <div style="position:absolute;background:#303031;width:0.933px;height:724.09px;left:97.04px;top:149.3px;"></div>
+    <div style="position:absolute;background:#303031;width:0.933px;height:724.09px;left:283.66px;top:149.3px;"></div>
+    <div style="position:absolute;background:#303031;width:0.933px;height:724.09px;left:470.29px;top:149.3px;"></div>
+    <div style="position:absolute;background:#303031;width:0.933px;height:724.09px;left:656.91px;top:149.3px;"></div>
+    <div style="position:absolute;background:#303031;width:0.933px;height:724.09px;left:843.53px;top:149.3px;"></div>
+    <div style="position:absolute;background:#303031;width:0.933px;height:724.09px;left:1030.15px;top:149.3px;"></div>
+    <div style="position:absolute;background:#303031;width:0.933px;height:724.09px;left:1216.77px;top:149.3px;"></div>
+    <div style="position:absolute;background:#303031;width:0.933px;height:724.09px;left:1403.39px;top:149.3px;"></div>
+
+    <!-- Horizontal hour grid lines + labels -->
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:182.89px;"></div>
+    <span class="txt" style="left:26.13px;top:175.42px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">9 AM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:242.98px;"></div>
+    <span class="txt" style="left:26.13px;top:235.52px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">10 AM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:303.07px;"></div>
+    <span class="txt" style="left:26.13px;top:295.61px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">11 AM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:363.16px;"></div>
+    <span class="txt" style="left:26.13px;top:355.7px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">12 PM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:423.26px;"></div>
+    <span class="txt" style="left:26.13px;top:415.79px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">1 PM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:483.35px;"></div>
+    <span class="txt" style="left:26.13px;top:475.88px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">2 PM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:543.44px;"></div>
+    <span class="txt" style="left:26.13px;top:535.98px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">3 PM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:603.53px;"></div>
+    <span class="txt" style="left:26.13px;top:596.07px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">4 PM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:663.62px;"></div>
+    <span class="txt" style="left:26.13px;top:656.16px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">5 PM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:723.72px;"></div>
+    <span class="txt" style="left:26.13px;top:716.25px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">6 PM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:783.81px;"></div>
+    <span class="txt" style="left:26.13px;top:776.34px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">7 PM</span>
+    <div style="position:absolute;background:#303031;height:0.933px;width:1306.348px;left:97.04px;top:843.9px;"></div>
+    <span class="txt" style="left:26.13px;top:836.44px;color:#c4c7c5;font-size:15.49px;line-height:20.528px;">8 PM</span>
+
+    <!-- ── ALL-DAY / TOP EVENTS ── -->
+    <!-- Veterans Day (Wed) -->
+    <div class="ev" style="background:#518e5e;height:26.873px;left:658.77px;top:151.16px;width:89.578px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#112719;font-size:16.049px;line-height:20.528px;">Veterans Day</span>
+    </div>
+
+    <!-- Coffee chat w mag (Fri) -->
+    <div class="ev" style="background:#5d9d8a;height:26.873px;left:1032.01px;top:151.16px;width:167.959px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#f1f3f4;font-size:16.796px;line-height:20.528px;">Coffee chat w mag</span>
+    </div>
+
+    <!-- PS FALL RETREAT (Sat) -->
+    <div class="ev" style="background:#a47cb7;height:26.873px;left:1218.64px;top:151.16px;width:173.558px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#281a31;font-size:16.049px;line-height:20.528px;">PS FALL RETREAT</span>
+    </div>
+
+    <!-- ── TIMED EVENTS ── -->
+
+    <!-- Math 33A Lec 9am (Mon) -->
+    <div class="ev" style="background:#3d5273;height:46.655px;left:285.53px;top:184.75px;width:167.212px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#f1f3f4;font-size:16.983px;font-weight:700;line-height:20.528px;">Math 33A Lec, 9am</span>
+    </div>
+
+    <!-- Math 33A Lec 9am (Wed) -->
+    <div class="ev" style="background:#3d5273;height:46.655px;left:658.77px;top:184.75px;width:167.212px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#f1f3f4;font-size:16.983px;font-weight:700;line-height:20.528px;">Math 33A Lec, 9am</span>
+    </div>
+
+    <!-- Math 33A Disc 9am (Thu) -->
+    <div class="ev" style="background:#3d5273;height:46.655px;left:845.39px;top:184.75px;width:167.212px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#f1f3f4;font-size:16.983px;font-weight:700;line-height:20.528px;">Math 33A Disc, 9am</span>
+    </div>
+
+    <!-- Math 33A Lec 9am (Fri) -->
+    <div class="ev" style="background:#3d5273;height:46.655px;left:1032.01px;top:184.75px;width:167.212px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#f1f3f4;font-size:16.983px;font-weight:700;line-height:20.528px;">Math 33A Lec, 9am</span>
+    </div>
+
+    <!-- Doctors appointment (Mon) -->
+    <div class="ev" style="background:#7fa4b4;height:54.867px;left:294.86px;top:230.66px;width:157.881px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#17313b;font-size:17.542px;white-space:nowrap;">
+        <p style="line-height:20.528px;">Doctors app</p>
+        <p style="line-height:20.528px;">9:45 – 10:45am</p>
+      </div>
+    </div>
+
+    <!-- CS M51A Disc (Fri) 12–1:50pm -->
+    <div class="ev" style="background:#3d5273;height:106.001px;left:1032.01px;top:365.78px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#f1f3f4;font-size:17.729px;white-space:nowrap;">
+        <p style="font-weight:700;line-height:20.528px;">CS M51A Disc</p>
+        <p style="line-height:20.528px;">12 – 1:50pm</p>
+        <p style="line-height:20.528px;">Geology Building</p>
+        <p style="line-height:20.528px;">4660</p>
+      </div>
+    </div>
+
+    <!-- BChat Design Meeting (Sun) 3pm -->
+    <div class="ev" style="background:#7fa4b4;height:55.986px;left:98.91px;top:544.93px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#17313b;font-size:17.729px;white-space:nowrap;">
+        <p style="line-height:20.528px;">BChat Design Mee</p>
+        <p style="line-height:20.528px;">3pm, TBD</p>
+      </div>
+    </div>
+
+    <!-- CS M51A Lec (Tue) 2–3:50pm -->
+    <div class="ev" style="background:#3d5273;height:106.001px;left:472.15px;top:485.21px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#f1f3f4;font-size:17.729px;white-space:nowrap;">
+        <p style="font-weight:700;line-height:20.528px;">CS M51A Lec</p>
+        <p style="line-height:20.528px;">2 – 3:50pm</p>
+        <p style="line-height:20.528px;">Dodd Hall 147</p>
+      </div>
+    </div>
+
+    <!-- CS 180 Lec (Tue) 4–5:50pm -->
+    <div class="ev" style="background:#3d5273;height:106.001px;left:472.15px;top:605.4px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#f1f3f4;font-size:17.729px;white-space:nowrap;">
+        <p style="font-weight:700;line-height:20.528px;">CS 180 Lec</p>
+        <p style="line-height:20.528px;">4 – 5:50pm</p>
+        <p style="line-height:20.528px;">Young Hall CS24</p>
+      </div>
+    </div>
+
+    <!-- CS M51A Lec (Thu) 2–3:50pm -->
+    <div class="ev" style="background:#3d5273;height:106.001px;left:845.39px;top:485.21px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#f1f3f4;font-size:17.729px;white-space:nowrap;">
+        <p style="font-weight:700;line-height:20.528px;">CS M51A Lec</p>
+        <p style="line-height:20.528px;">2 – 3:50pm</p>
+        <p style="line-height:20.528px;">Dodd Hall 147</p>
+      </div>
+    </div>
+
+    <!-- CS 180 Lec (Thu) 4–5:50pm -->
+    <div class="ev" style="background:#3d5273;height:106.001px;left:845.39px;top:605.4px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#f1f3f4;font-size:17.729px;white-space:nowrap;">
+        <p style="font-weight:700;line-height:20.528px;">CS 180 Lec</p>
+        <p style="line-height:20.528px;">4 – 5:50pm</p>
+        <p style="line-height:20.528px;">Young Hall CS24</p>
+      </div>
+    </div>
+
+    <!-- CS 180 Disc (Fri) 2–3:50pm -->
+    <div class="ev" style="background:#3d5273;height:106.001px;left:1032.01px;top:485.21px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#f1f3f4;font-size:17.729px;white-space:nowrap;">
+        <p style="font-weight:700;line-height:20.528px;">CS 180 Disc</p>
+        <p style="line-height:20.528px;">2 – 3:50pm</p>
+        <p style="line-height:20.528px;">dodd hall 147</p>
+      </div>
+    </div>
+
+    <!-- Climbing Social (Fri) 4–6pm -->
+    <div class="ev" style="background:#a47bb7;height:117.571px;left:1032.01px;top:605.4px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#281832;font-size:17.729px;white-space:nowrap;">
+        <p style="line-height:20.528px;">Climbing Social</p>
+        <p style="line-height:20.528px;">🧗 🧗</p>
+        <p style="line-height:20.528px;">4 – 6pm</p>
+        <p style="line-height:20.528px;">Sender One</p>
+        <p style="line-height:20.528px;">Climbing -</p>
+      </div>
+    </div>
+
+    <!-- PS General Meeting (Mon) 6–8pm -->
+    <div class="ev" style="background:#ab7db9;height:119.438px;left:285.53px;top:725.96px;width:83.233px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#291730;font-size:17.542px;white-space:nowrap;">
+        <p style="line-height:20.528px;">PS General</p>
+        <p style="line-height:20.528px;">Meeting</p>
+        <p style="line-height:20.528px;">6 – 8pm</p>
+        <p style="line-height:20.528px;">Mathematical</p>
+        <p style="line-height:20.528px;">Sciences 7…</p>
+      </div>
+    </div>
+
+    <!-- ACM Design meeting (Mon) 6pm -->
+    <div class="ev" style="background:#e58b38;height:153.029px;left:369.88px;top:725.96px;width:82.86px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#492708;font-size:17.542px;white-space:pre;">
+        <p style="line-height:20.528px;">ACM Design</p>
+        <p style="line-height:20.528px;">6pm, Ack…</p>
+        <p style="line-height:20.528px;">&#8203;</p>
+        <p style="line-height:20.528px;">dinner social</p>
+        <p style="line-height:20.528px;">7 – 8:30pm</p>
+        <p style="line-height:20.528px;">XIBEI</p>
+        <p style="line-height:20.528px;">EATERY</p>
+      </div>
+    </div>
+
+    <!-- ACM Design Track (Tue) 6pm -->
+    <div class="ev" style="background:#e58b38;height:55.986px;left:472.15px;top:725.96px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#492708;font-size:17.729px;white-space:nowrap;">
+        <p style="line-height:20.528px;">ACM Design Track</p>
+        <p style="line-height:20.528px;">6pm, Boelter 4760</p>
+      </div>
+    </div>
+
+    <!-- Big + Lit (Tue) 7–8pm -->
+    <div class="ev" style="background:#7796e8;height:57.853px;left:472.15px;top:785.67px;width:81.367px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#132e66;font-size:17.729px;white-space:nowrap;">
+        <p style="line-height:20.528px;">Big + Lit</p>
+        <p style="line-height:20.528px;">7 – 8pm</p>
+      </div>
+    </div>
+
+    <!-- DevX GB (Tue) 7–8pm -->
+    <div class="ev" style="background:#7796e8;height:57.853px;left:555.38px;top:785.67px;width:83.979px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#132e66;font-size:17.729px;white-space:nowrap;">
+        <p style="line-height:20.528px;">DevX GB…</p>
+        <p style="line-height:20.528px;">7 – 8pm</p>
+      </div>
+    </div>
+
+    <!-- ACM Design Dev Team (Wed) 7pm -->
+    <div class="ev" style="background:#e58b38;height:57.853px;left:658.77px;top:785.67px;width:167.212px;">
+      <div style="position:absolute;left:7.46px;top:3.73px;color:#492708;font-size:17.729px;white-space:nowrap;">
+        <p style="line-height:20.528px;">ACM Design Dev T…</p>
+        <p style="line-height:20.528px;">7pm, E6 289</p>
+      </div>
+    </div>
+
+    <!-- Enrollment reminder (Mon) 8pm -->
+    <div class="ev" style="background:#5d9d8a;height:44.789px;left:285.53px;top:846.51px;width:167.212px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#f1f3f4;font-size:17.729px;line-height:20.528px;">Enrollment…</span>
+    </div>
+
+    <!-- PD Cohort Meeting (Thu) 8pm – outlined only -->
+    <div class="ev" style="background:#131314;border:1.12px solid #90b6c0;height:37.324px;left:845.39px;top:846.51px;width:167.212px;">
+      <span class="txt" style="left:6.34px;top:2.61px;color:#90b6c0;font-size:17.542px;line-height:20.528px;">PD Cohort Meeting</span>
+    </div>
+
+    <!-- Big and little (Sat) 8pm -->
+    <div class="ev" style="background:#7796e8;height:37.324px;left:1218.64px;top:846.51px;width:167.212px;">
+      <span class="txt" style="left:7.46px;top:3.73px;color:#132e66;font-size:17.542px;line-height:20.528px;">Big and little</span>
+    </div>
+
+    <!-- Current-time indicator (Tue) ~11am -->
+    <div style="position:absolute;background:#f45b57;height:2.053px;left:470.29px;top:323.6px;width:186.621px;"></div>
+    <img src="assets/current-time-dot.svg" alt="" style="left:462.07px;top:316.51px;width:17.169px;height:17.169px;">
+
+    <!-- Calendar scrollbar -->
+    <div style="position:absolute;background:#5b5b5b;width:11.944px;height:320.988px;left:1410.86px;top:447.89px;border-radius:7.465px;"></div>
+
+    <!-- Retreat continuation arrow (right edge) -->
+    <img src="assets/retreat-continuation-arrow.svg" alt="" style="left:1391.19px;top:151.16px;width:9.331px;height:26.873px;">
+  </div><!-- /week-cal -->
+
+
+  <!-- ════════════════════════════════════════════════════
+       GOOGLE APPS RAIL (right)
+  ════════════════════════════════════════════════════ -->
+  <div class="google-apps">
+    <img src="assets/group3.svg"    alt="" style="left:27.77px;top:26.54px;width:22px;height:29px;">
+    <img src="assets/group2.svg"    alt="" style="left:24.77px;top:110.54px;width:28px;height:29px;">
+    <img src="assets/group4.svg"    alt="" style="left:27.77px;top:195.54px;width:22.001px;height:26.014px;">
+    <img src="assets/mask-group.svg" alt="" style="left:27.76px;top:278.54px;width:22.027px;height:28.21px;">
+
+    <!-- Chart bars (decorative) -->
+    <div style="position:absolute;background:#678df2;width:24.973px;height:4.919px;left:25.77px;top:366.62px;
+                border-bottom-left-radius:10px;border-bottom-right-radius:10px;"></div>
+    <div style="position:absolute;display:flex;width:7.568px;height:21.568px;align-items:center;justify-content:center;left:43.17px;top:343.54px;">
+      <div style="transform:rotate(90deg);background:#2c59cd;width:21.568px;height:7.568px;border-top-left-radius:10px;border-bottom-left-radius:10px;"></div>
+    </div>
+    <div style="position:absolute;display:flex;width:7.568px;height:17.784px;align-items:center;justify-content:center;left:34.47px;top:347.33px;">
+      <div style="transform:rotate(90deg);background:#4e88ff;width:17.784px;height:7.568px;border-top-left-radius:10px;border-bottom-left-radius:10px;"></div>
+    </div>
+    <div style="position:absolute;display:flex;width:7.568px;height:12.865px;align-items:center;justify-content:center;left:25.77px;top:352.25px;">
+      <div style="transform:rotate(90deg);background:#8c9eff;width:12.865px;height:7.568px;border-top-left-radius:10px;border-bottom-left-radius:10px;"></div>
+    </div>
+
+    <img src="assets/add-addons.svg"  alt="" style="left:22.43px;top:431.21px;width:29.906px;height:29.906px;">
+    <img src="assets/information.svg" alt="" style="left:18.69px;top:844.85px;width:29.906px;height:29.906px;">
+  </div><!-- /google-apps -->
+
+</div><!-- /root -->
+</body>
+</html>

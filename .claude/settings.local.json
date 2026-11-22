@@ -1,0 +1,36 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__figma__create_session",
+      "mcp__figma__get_design_context",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/2ac5be99-7795-42f5-99e0-e407d24c076f.png\" -o \"calendar-mark.png\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/bc0b6439-cab6-441a-804f-7c00937ea953.png\" -o \"ucla-brand.png\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/6a63fccf-05ae-40fd-b9ef-e9a067613473.svg\" -o \"main-menu.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/93de0f7c-9cab-41c7-a067-f125c5790974.svg\" -o \"previous-week.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/6395ef2a-c46a-4a15-8dc7-a61974473e18.svg\" -o \"next-week.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/d13e0768-0344-4f3b-9367-55fed450ca14.svg\" -o \"view-menu.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/b70054d8-d118-4edd-8de6-32391f0af514.svg\" -o \"calendar-view.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/c2de080f-581e-495d-8543-7cf1650a18fd.svg\" -o \"task-view.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/aaf55921-e7e4-47b5-b6d9-bcafe3b53547.svg\" -o \"create.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/108f0d03-c21d-41b5-844c-6d933119a497.svg\" -o \"previous-month.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/8cab12c2-8402-47ac-9b20-e2520ce0cb54.svg\" -o \"expand-booking-pages.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/48c6d2d4-f2e9-47f4-892f-87aa836a988c.svg\" -o \"insights-chart.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/b265824d-a3ca-4166-95bf-530f38e101bf.svg\" -o \"collapse-calendars.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/15b9da4e-45b8-41e5-96b1-0ecab68923f9.svg\" -o \"selected.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/2bfba297-a6a5-4ceb-a62a-1046916420e8.svg\" -o \"current-time-dot.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/72c5158d-cda0-484f-b555-a45dfddb700b.svg\" -o \"group2.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/4e43577d-59d5-4be5-9148-798f9286f0a5.svg\" -o \"group3.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/7f452fdc-4ab4-4732-abc5-2d7eb16dcc64.svg\" -o \"group4.svg\")",
+      "Bash(curl -sL \"https://www.figma.com/api/mcp/asset/fab8636f-5cbb-4a37-a379-5b931358782c.svg\" -o \"mask-group.svg\")",
+      "Bash(wait)",
+      "Bash(npm create *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "mcp__figma__get_screenshot",
+      "Bash(curl -f -L -o \"C:/Users/antho/OneDrive/Desktop/Product Space/Gcal feature/gcal-app/public/assets/ucla-brand-light.png\" \"https://www.figma.com/api/mcp/asset/486a444f-5f16-40ef-9c4c-4826bb454013.png\")",
+      "mcp__figma__download_assets",
+      "Bash(curl *)",
+      "Bash(xargs sed *)"
+    ]
+  }
+}

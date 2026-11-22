@@ -5,6 +5,13 @@ import CreatePollDialog from './CreatePollDialog'
 // Column x-boundaries (original Figma coords) — one divider per gap
 const DIVIDERS = [97.04, 283.66, 470.29, 656.91, 843.53, 1030.15, 1216.77, 1403.39]
 
+const DEMO_PEOPLE = [
+  { initial:'A', color:'#285c9a', email:'pnav6546@g.ucla.edu' },
+  { initial:'J', color:'#d28045', email:'jasonyu29@g.ucla.edu' },
+  { initial:'M', color:'#9e9e9e', email:'Muyitang@gmail.com' },
+  { initial:'S', color:'#9e9e9e', email:'Shaktiwid@g.ucla.com' },
+]
+
 // Week dates: Sun Nov 8 → Sat Nov 14, 2026
 const WEEK_DAYS = [
   new Date(2026,10, 8), new Date(2026,10, 9), new Date(2026,10,10),
@@ -24,7 +31,6 @@ const EVENT_BLOCKS = [
   [472.15,  725.96,  55.986],  // Tue – ACM Design Track
   [472.15,  785.67,  57.853],  // Tue – Big + Lit
   [555.38,  785.67,  57.853],  // Tue – DevX GB
-  [658.77,  151.16,  26.873],  // Wed – Veterans Day
   [658.77,  184.75,  46.655],  // Wed – Math 33A Lec
   [658.77,  785.67,  57.853],  // Wed – ACM Design Dev T
   [845.39,  184.75,  46.655],  // Thu – Math 33A Disc
@@ -36,7 +42,6 @@ const EVENT_BLOCKS = [
   [1032.01, 365.78, 106.001],  // Fri – CS M51A Disc
   [1032.01, 485.21, 106.001],  // Fri – CS 180 Disc
   [1032.01, 605.40, 117.571],  // Fri – Climbing Social
-  [1218.64, 151.16,  26.873],  // Sat – PS Fall Retreat
   [1218.64, 846.51,  37.324],  // Sat – Big and little
 ]
 
@@ -47,23 +52,24 @@ function dayMs(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()).
 // s/e are scroll-body y coords (12 AM = 0, each hour = 60.09px).
 // Multiple overlapping blocks per column create the layered "more people" effect.
 const GROUP_DEMO_SLOTS = [
-  { colIdx:0, s:510, e:899 },
+  { colIdx:0, s:300, e:899 },
   { colIdx:0, s:721, e:963 },
-  { colIdx:0, s:963, e:1214 },
-  { colIdx:1, s:511, e:537 },
-  { colIdx:1, s:640, e:920 },
+  { colIdx:0, s:963, e:1382 },
+  { colIdx:1, s:421, e:537 },
+  { colIdx:1, s:480, e:920 },
   { colIdx:1, s:648, e:1077 },
-  { colIdx:1, s:729, e:1002 },
-  { colIdx:2, s:510, e:834 },
-  { colIdx:2, s:1056, e:1212 },
-  { colIdx:3, s:594, e:1135 },
-  { colIdx:3, s:721, e:1202 },
-  { colIdx:4, s:511, e:537 },
-  { colIdx:4, s:594, e:838 },
-  { colIdx:4, s:658, e:1139 },
-  { colIdx:4, s:1043, e:1199 },
-  { colIdx:5, s:595, e:722 },
-  { colIdx:5, s:1082, e:1215 },
+  { colIdx:1, s:729, e:1322 },
+  { colIdx:2, s:360, e:834 },
+  { colIdx:2, s:1056, e:1382 },
+  { colIdx:3, s:421, e:1135 },
+  { colIdx:3, s:601, e:841 },
+  { colIdx:3, s:721, e:1382 },
+  { colIdx:4, s:300, e:537 },
+  { colIdx:4, s:480, e:838 },
+  { colIdx:4, s:658, e:1262 },
+  { colIdx:4, s:1043, e:1322 },
+  { colIdx:5, s:360, e:722 },
+  { colIdx:5, s:1082, e:1382 },
 ]
 
 function mergeSlots(arr) {
@@ -99,7 +105,15 @@ export default function DefaultScreen() {
   const [checkedGroups, setCheckedGroups] = useState(new Set())
   const [confirmedGroups, setConfirmedGroups] = useState([])
   const [savedPoll, setSavedPoll] = useState(null) // { title }
+  const [pollListOpen, setPollListOpen] = useState(false)
+  const [createdPolls, setCreatedPolls] = useState([])
+  const [hiddenPolls, setHiddenPolls] = useState(new Set())
+  const [calendarPollEvents, setCalendarPollEvents] = useState([])
   const [checkedTimeOptions, setCheckedTimeOptions] = useState(new Set())
+  const [availTooltip, setAvailTooltip] = useState(null)
+  const [hoveredSlot, setHoveredSlot] = useState(null)
+  const [hoveredPoll, setHoveredPoll] = useState(null)
+  const [pendingEventPopup, setPendingEventPopup] = useState(null)
   const nextId = useRef(0)
   const dragRef = useRef({ active: false })
   const dragHandlersRef = useRef({})
@@ -118,7 +132,7 @@ export default function DefaultScreen() {
   // Grid: 12 AM at y=0, each hour = 60.09px; 9 AM is at y = 9 * 60.09
   const HOUR_H = 60.09
   const GRID_TOP = 149.3   // header height
-  const GRID_1AM = 9 * HOUR_H  // scroll-body y of 9 AM (9 hrs after midnight)
+  const GRID_1AM = 8.5 * HOUR_H  // scroll-body y of 9 AM (offset corrected -30 min)
   // convert original weekCal `top` values into scroll-body coordinates
   const tG = (t) => t - GRID_TOP + GRID_1AM
 
@@ -254,28 +268,25 @@ export default function DefaultScreen() {
       {/* ── TOP TOOLBAR ── */}
       <div className={styles.topToolbar}>
         <img src="/assets/main-menu.svg" alt="" style={{left:'37.32px',top:'29.86px',width:'29.859px',height:'29.859px'}} />
-        <div style={{position:'absolute',left:'100.78px',top:'14.93px',width:'48.521px',height:'55.986px',overflow:'hidden'}}>
-          <img src="/assets/calendar-mark.png" alt=""
-            style={{position:'absolute',width:'3938.46%',height:'1779.01%',left:'-200%',top:'-26.67%',maxWidth:'none'}} />
-        </div>
-        <span className={styles.txt} style={{left:'167.96px',top:'26.13px',color:'#e3e3e3',fontSize:'32.099px'}}>Calendar</span>
+        <img src="/assets/calendar-mark-light.png" alt="" style={{left:'100.78px',top:'22.93px',width:'48px',height:'48px'}} />
+        <span className={styles.txt} style={{left:'167.96px',top:'30.88px',color:'#202124',fontSize:'32.099px'}}>Calendar</span>
         <div style={{position:'absolute',left:'380.71px',top:'14.93px',width:'134.367px',height:'63.451px',
-          border:'1.493px solid #606462',borderRadius:'37.324px'}} />
-        <span className={styles.txt} style={{left:'418.03px',top:'33.59px',color:'#e3e3e3',fontSize:'20.902px'}}>Today</span>
+          border:'1.493px solid #dadce0',borderRadius:'37.324px'}} />
+        <span className={styles.txt} style={{left:'418.03px',top:'33.59px',color:'#202124',fontSize:'20.902px'}}>Today</span>
         <img src="/assets/previous-week.svg" alt="" style={{left:'556.13px',top:'29.86px',width:'26.127px',height:'26.127px'}} />
         <img src="/assets/next-week.svg"     alt="" style={{left:'604.65px',top:'29.86px',width:'26.127px',height:'26.127px'}} />
-        <span className={styles.txt} style={{left:'668.1px',top:'27.99px',color:'#e3e3e3',fontSize:'31.352px'}}>November 2026</span>
+        <span className={styles.txt} style={{left:'668.1px',top:'27.99px',color:'#202124',fontSize:'31.352px'}}>November 2026</span>
         <img src="/assets/search.svg"   alt="" style={{left:'1067.47px',top:'29.86px',width:'29.859px',height:'29.859px'}} />
         <img src="/assets/help.svg"     alt="" style={{left:'1130.92px',top:'29.86px',width:'29.859px',height:'29.859px'}} />
         <img src="/assets/settings.svg" alt="" style={{left:'1198.11px',top:'29.86px',width:'29.859px',height:'29.859px'}} />
         <div style={{position:'absolute',left:'1265.29px',top:'14.93px',width:'149.297px',height:'63.451px',
-          border:'1.493px solid #606462',borderRadius:'37.324px'}} />
-        <span className={styles.txt} style={{left:'1298.88px',top:'33.59px',color:'#e3e3e3',fontSize:'21.275px'}}>Week</span>
+          border:'1.493px solid #dadce0',borderRadius:'37.324px'}} />
+        <span className={styles.txt} style={{left:'1298.88px',top:'33.59px',color:'#202124',fontSize:'21.275px'}}>Week</span>
         <img src="/assets/view-menu.svg" alt="" style={{left:'1369.8px',top:'33.59px',width:'18.662px',height:'18.662px'}} />
         <div style={{position:'absolute',left:'1433.25px',top:'14.93px',width:'156.762px',height:'63.451px',
-          border:'1.493px solid #606462',borderRadius:'37.324px'}} />
+          border:'1.493px solid #dadce0',borderRadius:'37.324px'}} />
         <div style={{position:'absolute',left:'1433.25px',top:'14.93px',width:'78.381px',height:'63.451px',
-          background:'#235377',borderRadius:'37.324px'}} />
+          background:'#d3e3fd',borderRadius:'37.324px'}} />
         <img src="/assets/calendar-view.svg" alt="" style={{left:'1459.38px',top:'29.86px',width:'26.127px',height:'26.127px'}} />
         <img src="/assets/task-view.svg"     alt="" style={{left:'1534.03px',top:'29.86px',width:'29.859px',height:'29.859px'}} />
         {[
@@ -283,91 +294,86 @@ export default function DefaultScreen() {
           [1623.6,38.44],[1632.19,38.44],[1640.77,38.44],
           [1623.6,47.03],[1632.19,47.03],[1640.77,47.03],
         ].map(([l,t],i) => (
-          <div key={i} style={{position:'absolute',background:'#e3e3e3',borderRadius:'2.239px',
+          <div key={i} style={{position:'absolute',background:'#202124',borderRadius:'2.239px',
             width:'4.479px',height:'4.479px',left:`${l}px`,top:`${t}px`}} />
         ))}
         <div style={{position:'absolute',left:'1679.59px',top:'11.2px',width:'212.748px',height:'70.916px',
-          border:'1.493px solid #858886',borderRadius:'44.789px'}} />
-        <div style={{position:'absolute',left:'1701.98px',top:'26.13px',width:'115.705px',height:'41.057px',overflow:'hidden'}}>
-          <img src="/assets/ucla-brand.png" alt=""
-            style={{position:'absolute',width:'1651.61%',height:'2436.36%',left:'-1470.97%',top:'-63.64%',maxWidth:'none'}} />
-        </div>
-        <div style={{position:'absolute',left:'1832.62px',top:'22.39px',width:'48.521px',height:'48.521px',
-          background:'#285c9a',borderRadius:'24.261px'}} />
-        <span className={styles.txt} style={{left:'1847.55px',top:'29.86px',color:'#e3e3e3',fontSize:'22.395px'}}>A</span>
+          border:'1.493px solid #dadce0',borderRadius:'44.789px'}} />
+        <img src="/assets/ucla-brand-light.png" alt="" style={{left:'1701.98px',top:'25px',width:'101px',height:'43px'}} />
+        <img src="/assets/pfp-avatar.png" alt="" style={{position:'absolute',left:'1832.62px',top:'22.39px',width:'48.521px',height:'48.521px',borderRadius:'24.261px',objectFit:'cover'}} />
       </div>
 
       {/* ── SIDEBAR ── */}
       <div className={styles.sidebar}>
         <div style={{position:'absolute',left:'22.39px',top:'22.39px',width:'205.283px',height:'82.113px',
-          background:'#373b3d',borderRadius:'26.127px'}} />
+          background:'#ffffff',borderRadius:'26.127px',boxShadow:'0 1px 3px rgba(60,64,67,0.3)'}} />
         <img src="/assets/create.svg" alt="" style={{left:'44.79px',top:'44.79px',width:'33.592px',height:'33.592px'}} />
-        <span className={styles.txt} style={{left:'100.78px',top:'52.25px',color:'#e3e3e3',fontSize:'20.155px'}}>Create</span>
+        <span className={styles.txt} style={{left:'100.78px',top:'52.25px',color:'#202124',fontSize:'20.155px'}}>Create</span>
         <img src="/assets/view-menu.svg" alt="" style={{left:'182.89px',top:'52.25px',width:'18.662px',height:'18.662px'}} />
-        <span className={styles.txt} style={{left:'41.06px',top:'156.76px',color:'#e3e3e3',fontSize:'21.275px',fontWeight:700}}>November 2026</span>
+        <span className={styles.txt} style={{left:'41.06px',top:'156.76px',color:'#202124',fontSize:'21.275px',fontWeight:700}}>November 2026</span>
         <img src="/assets/previous-month.svg" alt="" style={{left:'276.2px',top:'156.76px',width:'18.662px',height:'18.662px'}} />
         <img src="/assets/next-month.svg"     alt="" style={{left:'320.99px',top:'156.76px',width:'18.662px',height:'18.662px'}} />
         {['S','M','T','W','T','F','S'].map((d,i) => (
           <span key={i} className={styles.txt}
-            style={{left:`${44.79+i*46.28}px`,top:'201.55px',color:'#c4c7c5',fontSize:'16.423px'}}>{d}</span>
+            style={{left:`${44.79+i*46.28}px`,top:'201.55px',color:'#5f6368',fontSize:'16.423px'}}>{d}</span>
         ))}
         {[1,2,3,4,5,6,7].map((n,i) => (
           <span key={n} className={styles.txt}
-            style={{left:`${44.79+i*46.28}px`,top:'238.88px',color:'#e3e3e3',fontSize:'16.049px'}}>{n}</span>
+            style={{left:`${44.79+i*46.28}px`,top:'238.88px',color:'#202124',fontSize:'16.049px'}}>{n}</span>
         ))}
-        <span className={styles.txt} style={{left:'44.79px',top:'277.69px',color:'#e3e3e3',fontSize:'16.049px'}}>8</span>
-        <div style={{position:'absolute',left:'126.9px',top:'269.12px',width:'36.204px',height:'36.204px',
-          background:'#a8c7fa',borderRadius:'18.102px'}} />
-        <span className={styles.txt} style={{left:'91.07px',top:'277.69px',color:'#e3e3e3',fontSize:'16.049px'}}>9</span>
-        <span className={styles.txt} style={{left:'133.62px',top:'277.69px',color:'#174176',fontSize:'16.049px'}}>10</span>
+        <div style={{position:'absolute',left:'31.7px',top:'269.12px',width:'36.204px',height:'36.204px',
+          background:'#1a73e8',borderRadius:'18.102px'}} />
+        <span className={styles.txt} style={{left:'44.79px',top:'277.69px',color:'#ffffff',fontSize:'16.049px'}}>8</span>
+        <span className={styles.txt} style={{left:'91.07px',top:'277.69px',color:'#202124',fontSize:'16.049px'}}>9</span>
+        <span className={styles.txt} style={{left:'133.62px',top:'277.69px',color:'#202124',fontSize:'16.049px'}}>10</span>
         {[11,12,13,14].map((n,i) => (
           <span key={n} className={styles.txt}
-            style={{left:`${179.9+i*46.28}px`,top:'277.69px',color:'#e3e3e3',fontSize:'16.049px'}}>{n}</span>
+            style={{left:`${179.9+i*46.28}px`,top:'277.69px',color:'#202124',fontSize:'16.049px'}}>{n}</span>
         ))}
         {[15,16,17,18,19,20,21].map((n,i) => (
           <span key={n} className={styles.txt}
-            style={{left:`${41.06+i*46.28}px`,top:'316.51px',color:'#e3e3e3',fontSize:'16.049px'}}>{n}</span>
+            style={{left:`${41.06+i*46.28}px`,top:'316.51px',color:'#202124',fontSize:'16.049px'}}>{n}</span>
         ))}
         {[22,23,24,25,26,27,28].map((n,i) => (
           <span key={n} className={styles.txt}
-            style={{left:`${41.06+i*46.28}px`,top:'355.33px',color:'#e3e3e3',fontSize:'16.049px'}}>{n}</span>
+            style={{left:`${41.06+i*46.28}px`,top:'355.33px',color:'#202124',fontSize:'16.049px'}}>{n}</span>
         ))}
-        <span className={styles.txt} style={{left:'41.06px',top:'394.14px',color:'#e3e3e3',fontSize:'16.049px'}}>29</span>
-        <span className={styles.txt} style={{left:'87.34px',top:'394.14px',color:'#e3e3e3',fontSize:'16.049px'}}>30</span>
+        <span className={styles.txt} style={{left:'41.06px',top:'394.14px',color:'#202124',fontSize:'16.049px'}}>29</span>
+        <span className={styles.txt} style={{left:'87.34px',top:'394.14px',color:'#202124',fontSize:'16.049px'}}>30</span>
         {[1,2,3,4,5].map((n,i) => (
           <span key={n} className={styles.txt}
-            style={{left:`${137.35+i*46.28}px`,top:'394.14px',color:'#949895',fontSize:'16.049px'}}>{n}</span>
+            style={{left:`${137.35+i*46.28}px`,top:'394.14px',color:'#70757a',fontSize:'16.049px'}}>{n}</span>
         ))}
         {[6,7,8,9,10,11,12].map((n,i) => (
           <span key={n} className={styles.txt}
-            style={{left:`${44.79+i*46.28}px`,top:'432.96px',color:'#949895',fontSize:'16.049px'}}>{n}</span>
+            style={{left:`${44.79+i*46.28}px`,top:'432.96px',color:'#70757a',fontSize:'16.049px'}}>{n}</span>
         ))}
-        <span className={styles.txt} style={{left:'41.06px',top:'462.82px',color:'#e3e3e3',fontSize:'21.648px',fontWeight:700}}>Meet with...</span>
+        <span className={styles.txt} style={{left:'41.06px',top:'462.82px',color:'#202124',fontSize:'21.648px',fontWeight:700}}>Meet with...</span>
         <div style={{position:'absolute',left:'41.06px',top:'496.41px',width:'298.594px',height:'59.719px',
-          background:'#282c2d',borderRadius:'3.732px'}} />
+          background:'#e9eef6',borderRadius:'3.732px'}} />
         <img src="/assets/people.svg" alt="" style={{left:'63.45px',top:'511.34px',width:'26.127px',height:'26.127px'}} />
-        <span className={styles.txt} style={{left:'111.97px',top:'515.07px',color:'#c4c7c5',fontSize:'20.528px'}}>Search for people</span>
-        <span className={styles.txt} style={{left:'41.06px',top:'593.46px',color:'#e3e3e3',fontSize:'21.648px'}}>Booking pages</span>
+        <span className={styles.txt} style={{left:'111.97px',top:'515.07px',color:'#5f6368',fontSize:'20.528px'}}>Search for people</span>
+        <span className={styles.txt} style={{left:'41.06px',top:'593.46px',color:'#202124',fontSize:'21.648px'}}>Booking pages</span>
         <img src="/assets/add-booking-page.svg"     alt="" style={{left:'265px',top:'589.72px',width:'26.127px',height:'26.127px'}} />
         <img src="/assets/expand-booking-pages.svg" alt="" style={{left:'313.52px',top:'593.46px',width:'26.127px',height:'26.127px'}} />
-        <span className={styles.txt} style={{left:'41.06px',top:'671.84px',color:'#e3e3e3',fontSize:'21.648px'}}>Time insights</span>
+        <span className={styles.txt} style={{left:'41.06px',top:'671.84px',color:'#202124',fontSize:'21.648px'}}>Time insights</span>
         <img src="/assets/insights-chart.svg"       alt="" style={{left:'268.73px',top:'668.1px',width:'29.859px',height:'29.859px'}} />
         <img src="/assets/expand-booking-pages.svg" alt="" style={{left:'313.52px',top:'671.84px',width:'26.127px',height:'26.127px'}} />
-        <span className={styles.txt} style={{left:'41.06px',top:'750.22px',color:'#e3e3e3',fontSize:'22.021px'}}>My calendars</span>
+        <span className={styles.txt} style={{left:'41.06px',top:'750.22px',color:'#202124',fontSize:'22.021px'}}>My calendars</span>
         <img src="/assets/collapse-calendars.svg" alt="" style={{left:'313.52px',top:'750.22px',width:'26.127px',height:'26.127px'}} />
         <div style={{position:'absolute',left:'41.06px',top:'802.47px',width:'25.007px',height:'25.007px',
           background:'#8eb5bd',borderRadius:'1.493px'}} />
         <img src="/assets/selected.svg" alt="" style={{left:'43.67px',top:'805.46px',width:'19.035px',height:'19.035px'}} />
-        <span className={styles.txt} style={{left:'82.11px',top:'806.2px',color:'#e3e3e3',fontSize:'20.902px'}}>Ucla Events</span>
+        <span className={styles.txt} style={{left:'82.11px',top:'806.2px',color:'#202124',fontSize:'20.902px'}}>Ucla Events</span>
         <div style={{position:'absolute',left:'41.06px',top:'843.53px',width:'25.007px',height:'25.007px',
           border:'1.493px solid #51a377',borderRadius:'1.493px'}} />
-        <span className={styles.txt} style={{left:'82.11px',top:'847.26px',color:'#e3e3e3',fontSize:'20.902px'}}>Birthdays</span>
+        <span className={styles.txt} style={{left:'82.11px',top:'847.26px',color:'#202124',fontSize:'20.902px'}}>Birthdays</span>
         <div style={{position:'absolute',left:'41.06px',top:'884.58px',width:'25.007px',height:'25.007px',
           background:'#7a9bcd',borderRadius:'1.493px'}} />
         <img src="/assets/selected.svg" alt="" style={{left:'43.67px',top:'887.57px',width:'19.035px',height:'19.035px'}} />
-        <span className={styles.txt} style={{left:'82.11px',top:'888.32px',color:'#e3e3e3',fontSize:'20.902px'}}>Classes</span>
+        <span className={styles.txt} style={{left:'82.11px',top:'888.32px',color:'#202124',fontSize:'20.902px'}}>Classes</span>
         <div style={{position:'absolute',left:'369.51px',top:'126.9px',width:'11.197px',height:'466.553px',
-          background:'#606060',borderRadius:'5.599px'}} />
+          background:'#bdc1c6',borderRadius:'5.599px'}} />
       </div>
 
       {/* ── WEEK CALENDAR ── */}
@@ -376,22 +382,61 @@ export default function DefaultScreen() {
         {/* Fixed day header */}
         <div className={styles.weekCalHeader}>
           {[
-            {label:'SUN', num:'8',  lx:173.18, nx:175.42, lc:'#c4c7c5', nc:'#e3e3e3'},
-            {label:'MON', num:'9',  lx:359.81, nx:362.04, lc:'#c4c7c5', nc:'#e3e3e3'},
-            {label:'TUE', num:'10', lx:546.43, nx:541.2,  lc:'#a8c7fa', nc:'#173769', sel:true},
-            {label:'WED', num:'11', lx:733.05, nx:727.82, lc:'#c4c7c5', nc:'#e3e3e3'},
-            {label:'THU', num:'12', lx:919.67, nx:914.44, lc:'#c4c7c5', nc:'#e3e3e3'},
-            {label:'FRI', num:'13', lx:1106.29,nx:1101.06,lc:'#c4c7c5', nc:'#e3e3e3'},
-            {label:'SAT', num:'14', lx:1292.91,nx:1287.69,lc:'#c4c7c5', nc:'#e3e3e3'},
-          ].map(({label,num,lx,nx,lc,nc,sel}) => (
+            {label:'SUN', num:'8',  lx:173.18, nx:175.42, cx:155.83, lc:'#1967d2', nc:'#ffffff', sel:true},
+            {label:'MON', num:'9',  lx:359.81, nx:362.04, cx:342.45, lc:'#5f6368', nc:'#202124'},
+            {label:'TUE', num:'10', lx:546.43, nx:541.2,  cx:523.9,  lc:'#5f6368', nc:'#202124'},
+            {label:'WED', num:'11', lx:733.05, nx:727.82, cx:710.57, lc:'#5f6368', nc:'#202124'},
+            {label:'THU', num:'12', lx:919.67, nx:914.44, cx:897.19, lc:'#5f6368', nc:'#202124'},
+            {label:'FRI', num:'13', lx:1106.29,nx:1101.06,cx:1083.81,lc:'#5f6368', nc:'#202124'},
+            {label:'SAT', num:'14', lx:1292.91,nx:1287.69,cx:1270.44,lc:'#5f6368', nc:'#202124'},
+          ].map(({label,num,lx,nx,cx,lc,nc,sel}) => (
             <span key={label}>
-              <span className={styles.txt} style={{left:`${nX(lx)}px`,top:'20.16px',color:lc,fontSize:'16.049px',fontWeight:700,lineHeight:'20.528px'}}>{label}</span>
-              {sel && <div style={{position:'absolute',left:`${nX(528.14)}px`,top:'44.04px',width:'69.05px',height:'69.05px',
-                background:'#a8c7fa',borderRadius:'37.324px'}} />}
-              <span className={styles.txt} style={{left:`${nX(nx)}px`,top:'59.35px',color:nc,fontSize:'38.817px',lineHeight:'20.528px'}}>{num}</span>
+              {sel
+                ? <span style={{position:'absolute',left:`${nX(cx)}px`,top:'20.16px',width:'69.05px',textAlign:'center',color:lc,fontSize:'16.049px',fontWeight:600,letterSpacing:'0.06em',lineHeight:'20.528px'}}>{label}</span>
+                : <span style={{position:'absolute',left:`${nX(cx)}px`,top:'20.16px',width:'69.05px',textAlign:'center',color:lc,fontSize:'16.049px',fontWeight:600,letterSpacing:'0.06em',lineHeight:'20.528px'}}>{label}</span>
+              }
+              {sel && <div style={{position:'absolute',left:`${nX(cx)}px`,top:'38.69px',width:'69.05px',height:'69.05px',
+                background:'#1a73e8',borderRadius:'37.324px'}} />}
+              {sel
+                ? <span style={{position:'absolute',left:`${nX(cx)}px`,top:'59.35px',width:'69.05px',textAlign:'center',color:nc,fontSize:'38.817px',lineHeight:'20.528px'}}>{num}</span>
+                : <span style={{position:'absolute',left:`${nX(cx)}px`,top:'59.35px',width:'69.05px',textAlign:'center',color:nc,fontSize:'38.817px',lineHeight:'20.528px'}}>{num}</span>
+              }
             </span>
           ))}
-          <span className={styles.txt} style={{left:'16.8px',top:'126.9px',color:'#e3e3e3',fontSize:'15.303px',lineHeight:'20.528px'}}>GMT-8</span>
+          <span className={styles.txt} style={{left:'16.8px',top:'130px',color:'#202124',fontSize:'15.303px',lineHeight:'20.528px'}}>GMT-8</span>
+
+          {/* All-day events — anchored just above bottom border */}
+          {!savedPoll && <>
+            {/* Veterans Day — full Wed column */}
+            <div style={{
+              position:'absolute',
+              left:`${nX(DIVIDERS[3])}px`, top:'158px',
+              width:`${nX(DIVIDERS[4]) - nX(DIVIDERS[3])}px`, height:'26px',
+              background:'#518e5e', borderRadius:'12px',
+              display:'flex', alignItems:'center', paddingLeft:'8px', overflow:'hidden',
+            }}>
+              <span style={{color:'#ffffff',fontSize:'17px',fontWeight:600,fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap'}}>Veterans Day</span>
+            </div>
+            {/* PS Fall Retreat — full Sat column */}
+            <div style={{
+              position:'absolute',
+              left:`${nX(DIVIDERS[6])}px`, top:'158px',
+              width:`${nX(DIVIDERS[7]) - nX(DIVIDERS[6])}px`, height:'26px',
+              background:'#a47cb7', borderRadius:'12px',
+              display:'flex', alignItems:'center', paddingLeft:'8px', overflow:'hidden',
+            }}>
+              <span style={{color:'#ffffff',fontSize:'17px',fontWeight:600,fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap'}}>PS FALL RETREAT</span>
+            </div>
+            <img src="/assets/retreat-continuation-arrow.svg" alt=""
+              style={{position:'absolute',left:`${nX(DIVIDERS[7])}px`,top:'158px',width:'9.331px',height:'26px'}} />
+          </>}
+
+          {/* Bottom border + column tick lines */}
+          <div style={{position:'absolute',left:'0',bottom:'0',width:'100%',height:'0',borderTop:'0.933px solid #e3e7ed'}}>
+            {DIVIDERS.map((l,i) => (
+              <div key={i} style={{position:'absolute',left:`${nX(l)}px`,bottom:'0',width:'0.933px',height:'10px',background:'#e3e7ed'}} />
+            ))}
+          </div>
         </div>
 
         {/* Scrollable time grid — 1 AM through 11 PM */}
@@ -402,7 +447,7 @@ export default function DefaultScreen() {
 
             {/* Vertical day dividers */}
             {[97.04,283.66,470.29,656.91,843.53,1030.15,1216.77,1403.39].map((l,i) => (
-              <div key={i} style={{position:'absolute',background:'#303031',width:'0.933px',height:`${25 * HOUR_H}px`,left:`${nX(l)}px`,top:'0'}} />
+              <div key={i} style={{position:'absolute',background:'#e3e7ed',width:'0.933px',height:`${25 * HOUR_H}px`,left:`${nX(l)}px`,top:'0'}} />
             ))}
 
             {/* Hour lines + labels — 12 AM to 11 PM (24 lines) */}
@@ -412,17 +457,15 @@ export default function DefaultScreen() {
               const g = i * HOUR_H
               return (
                 <span key={label}>
-                  <div style={{position:'absolute',background:'#303031',height:'0.933px',width:`${nW(1306.348)}px`,left:`${nX(97.04)}px`,top:`${g}px`}} />
-                  <span className={styles.txt} style={{left:'26.13px',top:`${g-7.5}px`,color:'#c4c7c5',fontSize:'15.49px',lineHeight:'20.528px'}}>{label}</span>
+                  <div style={{position:'absolute',background:'#e3e7ed',height:'0.933px',width:`${nW(1306.348)}px`,left:`${nX(97.04)}px`,top:`${g}px`}} />
+                  <span className={styles.txt} style={{left:'26.13px',top:`${g-7.5}px`,color:'#5f6368',fontSize:'15.49px',lineHeight:'20.528px'}}>{label}</span>
                 </span>
               )
             })}
 
             {/* Personal events — hidden when group event poll is active */}
             {!savedPoll && <>
-              <Ev bg="#518e5e"  h={26.873} l={nX(658.77)}  t={tG(151.16)} w={nW(89.578)}  tc="#112719" s={16.049}>Veterans Day</Ev>
               <Ev bg="#5d9d8a"  h={26.873} l={nX(1032.01)} t={tG(151.16)} w={nW(167.959)} tc="#f1f3f4" s={16.796}>Coffee chat w mag</Ev>
-              <Ev bg="#a47cb7"  h={26.873} l={nX(1218.64)} t={tG(151.16)} w={nW(173.558)} tc="#281a31" s={16.049}>PS FALL RETREAT</Ev>
               <Ev bg="#3d5273"  h={46.655} l={nX(285.53)}  t={tG(184.75)} w={nW(167.212)} tc="#f1f3f4" s={16.983} bold>Math 33A Lec, 9am</Ev>
               <Ev bg="#3d5273"  h={46.655} l={nX(658.77)}  t={tG(184.75)} w={nW(167.212)} tc="#f1f3f4" s={16.983} bold>Math 33A Lec, 9am</Ev>
               <Ev bg="#3d5273"  h={46.655} l={nX(845.39)}  t={tG(184.75)} w={nW(167.212)} tc="#f1f3f4" s={16.983} bold>Math 33A Disc, 9am</Ev>
@@ -443,29 +486,126 @@ export default function DefaultScreen() {
               <Ev bg="#7796e8"  h={57.853}  l={nX(555.38)}  t={tG(785.67)} w={nW(83.979)}  tc="#132e66" s={17.729} lines={['DevX GB…','7 – 8pm']} />
               <Ev bg="#e58b38"  h={57.853}  l={nX(658.77)}  t={tG(785.67)} w={nW(167.212)} tc="#492708" s={17.729} lines={['ACM Design Dev T…','7pm, E6 289']} />
               <Ev bg="#5d9d8a"  h={44.789}  l={nX(285.53)}  t={tG(846.51)} w={nW(167.212)} tc="#f1f3f4" s={17.729}>Enrollment…</Ev>
-              <Ev bg="#131314"  h={37.324}  l={nX(845.39)}  t={tG(846.51)} w={nW(167.212)} tc="#90b6c0" s={17.542} border="1.12px solid #90b6c0">PD Cohort Meeting</Ev>
+              <Ev bg="#ffffff"  h={37.324}  l={nX(845.39)}  t={tG(846.51)} w={nW(167.212)} tc="#90b6c0" s={17.542} border="1.12px solid #90b6c0">PD Cohort Meeting</Ev>
               <Ev bg="#7796e8"  h={37.324}  l={nX(1218.64)} t={tG(846.51)} w={nW(167.212)} tc="#132e66" s={17.542}>Big and little</Ev>
               {/* Current time indicator */}
-              <div style={{position:'absolute',background:'#f45b57',height:'2.053px',left:`${nX(470.29)}px`,top:`${tG(323.6)}px`,width:`${nW(186.621)}px`}} />
-              <img src="/assets/current-time-dot.svg" alt="" style={{position:'absolute',left:`${nX(462.07)}px`,top:`${tG(316.51)}px`,width:'17.169px',height:'17.169px'}} />
-              <img src="/assets/retreat-continuation-arrow.svg" alt=""
-                style={{position:'absolute',left:`${nX(1391.19)}px`,top:`${tG(151.16)}px`,width:'9.331px',height:'26.873px'}} />
+              <div style={{position:'absolute',background:'#f45b57',height:'2.053px',left:`${nX(97.04)}px`,top:`${tG(323.6)}px`,width:`${nW(186.621)}px`}} />
+              <img src="/assets/current-time-dot.svg" alt="" style={{position:'absolute',left:`${nX(88.82)}px`,top:`${tG(316.51)}px`,width:'17.169px',height:'17.169px'}} />
             </>}
 
             {/* Group availability demo — shown when event poll is active */}
-            {savedPoll && GROUP_DEMO_SLOTS.map((sl, i) => {
-              const GAP   = 5
-              const left  = nX(DIVIDERS[sl.colIdx]) + GAP
-              const width = nX(DIVIDERS[sl.colIdx + 1]) - nX(DIVIDERS[sl.colIdx]) - GAP * 2
-              const h = sl.e - sl.s
-              if (h < 2) return null
+            {savedPoll && (() => {
+              const WEEK_START = new Date(2026, 10, 8)
+              const toColIdx = d => d ? Math.round((new Date(d) - WEEK_START) / 86400000) : 0
+              const startCol = savedPoll.startDate ? toColIdx(savedPoll.startDate) : 0
+              const endCol   = savedPoll.endDate   ? toColIdx(savedPoll.endDate)   : 6
+              const filtered = GROUP_DEMO_SLOTS.filter(sl => sl.colIdx >= startCol && sl.colIdx <= endCol)
+              return filtered.map((sl, i) => {
+                const GAP   = 5
+                const left  = nX(DIVIDERS[sl.colIdx]) + GAP
+                const width = nX(DIVIDERS[sl.colIdx + 1]) - nX(DIVIDERS[sl.colIdx]) - GAP * 2
+                const h = sl.e - sl.s
+                if (h < 2) return null
+                return (
+                  <div key={i} style={{
+                    position:'absolute', left:`${left}px`, top:`${sl.s}px`,
+                    width:`${width}px`, height:`${h}px`,
+                    background:'rgba(45,184,31,0.60)', borderRadius:'9px',
+                    animation: `growDown 400ms ease-out ${i * 40}ms both`,
+                    cursor:'pointer',
+                  }}
+                  onMouseMove={e => {
+                    const scale = window.innerWidth / 1911
+                    const scrollTop = scrollBodyRef.current?.scrollTop || 0
+                    const bodyRect = scrollBodyRef.current?.getBoundingClientRect()
+                    const relY = bodyRect ? (e.clientY - bodyRect.top) / scale + scrollTop : 0
+                    const overlapping = filtered.filter(s => s.colIdx === sl.colIdx && relY >= s.s && relY <= s.e).length
+                    setAvailTooltip({
+                      x: e.clientX / scale + 18,
+                      y: e.clientY / scale - 60,
+                      available: Math.min(overlapping, DEMO_PEOPLE.length),
+                      total: DEMO_PEOPLE.length,
+                    })
+                  }}
+                  onMouseLeave={() => setAvailTooltip(null)}
+                  />
+                )
+              })
+            })()}
+
+            {/* Poll slot highlights on calendar (checked=fill, hovered=outline) */}
+            {savedPoll && (() => {
+              const HOUR_H = 60.09
+              const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+              function slotCoords(opt) {
+                const colIdx = DAY_NAMES.findIndex(d => opt.date.startsWith(d))
+                const m = opt.time.match(/^(\d+):(\d+)\s*[–-]\s*(\d+):(\d+)(am|pm)/i)
+                if (!m || colIdx < 0) return null
+                const isPM = m[5].toLowerCase() === 'pm'
+                let endH = parseInt(m[3]); if (isPM && endH !== 12) endH += 12
+                let startH = parseInt(m[1])
+                if (startH === 12 && isPM) startH = 12
+                else if (isPM && startH < 12 && startH + 12 <= endH) startH += 12
+                const s = startH * HOUR_H + parseInt(m[2]) * HOUR_H / 60
+                const e = endH   * HOUR_H + parseInt(m[4]) * HOUR_H / 60
+                const GAP = 5
+                return { colIdx, s, e, left: nX(DIVIDERS[colIdx]) + GAP, width: nX(DIVIDERS[colIdx+1]) - nX(DIVIDERS[colIdx]) - GAP*2 }
+              }
+              return (savedPoll.options || []).map((opt, i) => {
+                const coords = slotCoords(opt)
+                if (!coords) return null
+                const checked = checkedTimeOptions.has(i)
+                const hovered = hoveredSlot === i
+                if (!checked && !hovered) return null
+                return (
+                  <div key={i} style={{
+                    position:'absolute', left:`${coords.left}px`, top:`${coords.s}px`,
+                    width:`${coords.width}px`, height:`${coords.e - coords.s}px`,
+                    background: checked ? '#D3E3FD' : 'transparent',
+                    border: hovered || checked ? '2.5px solid #1a73e8' : 'none',
+                    borderRadius:'9px', pointerEvents:'none', boxSizing:'border-box',
+                  }} />
+                )
+              })
+            })()}
+
+            {/* Pending event cards — shown once poll editing is done (incl. squished view) */}
+            {!savedPoll && calendarPollEvents.filter(evt => !hiddenPolls.has(evt.title)).map((evt, i) => {
+              const HOUR_H = 60.09
+              const DAY_NAMES = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
+              const colIdx = DAY_NAMES.findIndex(d => evt.date.startsWith(d))
+              const m = evt.time.match(/^(\d+):(\d+)\s*[–-]\s*(\d+):(\d+)(am|pm)/i)
+              if (!m || colIdx < 0) return null
+              const isPM = m[5].toLowerCase() === 'pm'
+              let endH = parseInt(m[3]); if (isPM && endH !== 12) endH += 12
+              let startH = parseInt(m[1])
+              if (startH === 12 && isPM) startH = 12
+              else if (isPM && startH < 12 && startH + 12 <= endH) startH += 12
+              const s = startH * HOUR_H + parseInt(m[2]) * HOUR_H / 60
+              const e = endH   * HOUR_H + parseInt(m[4]) * HOUR_H / 60
+              const GAP = 5
+              const left  = nX(DIVIDERS[colIdx]) + GAP
+              const width = nX(DIVIDERS[colIdx+1]) - nX(DIVIDERS[colIdx]) - GAP * 2
+              const poll = createdPolls.find(p => p.title === evt.title)
+              const isActive = pendingEventPopup?.poll?.title === evt.title && pendingEventPopup?.colIdx === colIdx
               return (
-                <div key={i} style={{
-                  position:'absolute', left:`${left}px`, top:`${sl.s}px`,
-                  width:`${width}px`, height:`${h}px`,
-                  background:'rgba(80,251,64,0.24)', borderRadius:'9px',
-                  pointerEvents:'none',
-                }} />
+                <div key={i} onClick={() => poll && setPendingEventPopup({ poll, colIdx })} style={{
+                  position:'absolute', left:`${left}px`, top:`${s}px`,
+                  width:`${width}px`, height:`${e - s}px`,
+                  background:'#f1f3f4', border:'1.5px dashed #aecbfa',
+                  borderRadius:'7.465px', boxSizing:'border-box', overflow:'hidden',
+                  cursor: poll ? 'pointer' : 'default',
+                  boxShadow: isActive ? '0 4px 14px rgba(0,0,0,0.18)' : 'none',
+                }}>
+                  <div style={{position:'absolute',left:'7.46px',top:'3.73px',fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap'}}>
+                    <p style={{margin:0,lineHeight:'20.528px',fontWeight:400,fontSize:'19px',color:'#bababa',overflow:'hidden',textOverflow:'ellipsis',maxWidth:`${width - 20}px`}}>
+                      {evt.title || 'Untitled'}
+                    </p>
+                    <p style={{margin:0,lineHeight:'20.528px',fontWeight:400,fontSize:'19px',color:'#bababa'}}>
+                      {evt.time}
+                    </p>
+                  </div>
+                </div>
               )
             })}
 
@@ -480,7 +620,7 @@ export default function DefaultScreen() {
                 <div key={sl.id} onMouseDown={e => e.stopPropagation()} style={{
                   position:'absolute', left:`${left}px`, top:`${sl.s}px`,
                   width:`${width}px`, height:`${h}px`,
-                  background:'rgba(80,251,64,0.24)', borderRadius:'6px',
+                  background:'rgba(45,184,31,0.60)', borderRadius:'6px',
                   userSelect:'none',
                 }}>
                   <div onMouseDown={e => startResizeDrag(e, sl.id, 'resize-top')} style={{
@@ -501,13 +641,13 @@ export default function DefaultScreen() {
         <div className={styles.pollingPanel} style={{
           position:'absolute', left:'1357px', top:'93.31px',
           width:'478.5px', height:'871.02px',
-          background:'#131314', borderRadius:'48.598px',
+          background:'#ffffff', borderRadius:'48.598px', boxShadow:'0 2px 10px rgba(0,0,0,0.12)',
           overflow:'hidden',
         }}>
           {/* Header */}
           <div style={{position:'absolute',display:'flex',gap:'8px',alignItems:'center',left:'22.43px',top:'33.64px'}}>
-            <span style={{color:'#e3e3e3',fontSize:'23.925px',fontFamily:"'Arimo',sans-serif",whiteSpace:'nowrap'}}>
-              {customizeOpen ? 'Customize availability' : selectGroupOpen ? 'Select Group' : savedPoll ? 'Event Poll' : 'Group Event Polling'}
+            <span style={{color:'#3c4043',fontSize:'23.925px',fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap'}}>
+              {customizeOpen ? 'Customize availability' : selectGroupOpen ? 'Select Group' : (pollListOpen || createdPolls.length > 0) ? 'Event Polls' : savedPoll ? 'Event Poll' : 'Group Event Polling'}
             </span>
             <div style={{position:'relative',width:'7.788px',height:'3.894px',flexShrink:0}}>
               <img src="/assets/vector.svg" alt=""
@@ -519,11 +659,11 @@ export default function DefaultScreen() {
           <img src="/assets/open-tasks.svg" alt="" style={{position:'absolute',left:'366.35px',top:'22.43px',width:'26.168px',height:'26.168px'}} />
           <img src="/assets/close-tasks.svg" alt=""
             style={{position:'absolute',left:'429.9px',top:'22.43px',width:'26.168px',height:'26.168px',cursor:'pointer'}}
-            onClick={() => { setPollOpen(false); setCustomizeOpen(false); setSelectGroupOpen(false) }}
+            onClick={() => { setPollOpen(false); setCustomizeOpen(false); setSelectGroupOpen(false); setPollListOpen(false) }}
           />
 
           {/* Header divider */}
-          <div style={{position:'absolute',background:'#373737',height:'1.121px',left:0,top:'82.24px',width:'478.5px'}} />
+          <div style={{position:'absolute',background:'#dadce0',height:'1.121px',left:0,top:'82.24px',width:'478.5px'}} />
 
           {selectGroupOpen ? (
             /* ── SELECT GROUP CONTENT ── */
@@ -541,7 +681,7 @@ export default function DefaultScreen() {
                         return next
                       })} style={{
                         width:'26.916px', height:'26.916px',
-                        border: checked ? 'none' : '1.495px solid white',
+                        border: checked ? 'none' : '1.495px solid #dadce0',
                         borderRadius:'1.495px', boxSizing:'border-box', flexShrink:0,
                         background: checked ? '#1a73e8' : 'transparent',
                         display:'flex', alignItems:'center', justifyContent:'center',
@@ -549,52 +689,42 @@ export default function DefaultScreen() {
                       }}>
                         {checked && <span style={{ color:'white', fontSize:'16px', lineHeight:1, marginTop:'-1px' }}>✓</span>}
                       </div>
-                      <span style={{ color:'white', fontSize:'21.682px', fontFamily:"'Inter',sans-serif", width:'371px' }}>{name}</span>
+                      <span style={{ color:'#202124', fontSize:'21.682px', fontFamily:"'Google Sans','Arimo',sans-serif", width:'371px' }}>{name}</span>
                     </div>
                     <div style={{ position:'relative', width:'26.168px', height:'26.168px', flexShrink:0 }}>
                       {[5,12,19].map(t => (
                         <div key={t} style={{ position:'absolute', left:'11px', top:`${t}px`,
-                          width:'4px', height:'4px', background:'white', borderRadius:'50%' }} />
+                          width:'4px', height:'4px', background:'#5f6368', borderRadius:'50%' }} />
                       ))}
                     </div>
                   </div>
                 )})}
-                {/* Add new Group */}
-                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', width:'100%' }}>
+                {/* Add new group */}
+                <div style={{ display:'flex', alignItems:'center', width:'100%' }}>
                   <div style={{ display:'flex', gap:'13px', alignItems:'center' }}>
                     <div style={{ width:'26.916px', height:'26.916px', display:'flex', alignItems:'center',
                       justifyContent:'center', flexShrink:0 }}>
-                      <span style={{ color:'#a8c7fa', fontSize:'22px', lineHeight:1 }}>+</span>
+                      <span style={{ color:'#1a73e8', fontSize:'22px', lineHeight:1 }}>+</span>
                     </div>
-                    <span style={{ color:'#a8c7fa', fontSize:'21.682px', fontFamily:"'Inter',sans-serif", whiteSpace:'nowrap' }}>
-                      Add new Group
+                    <span style={{ color:'#1a73e8', fontSize:'21.682px', fontFamily:"'Google Sans','Arimo',sans-serif", whiteSpace:'nowrap' }}>
+                      Add new group
                     </span>
-                  </div>
-                  <div style={{ position:'relative', width:'26.168px', height:'26.168px', flexShrink:0 }}>
-                    {[5,12,19].map(t => (
-                      <div key={t} style={{ position:'absolute', left:'11px', top:`${t}px`,
-                        width:'4px', height:'4px', background:'white', borderRadius:'50%' }} />
-                    ))}
                   </div>
                 </div>
               </div>
               {/* Actions */}
-              <div style={{ position:'absolute', left:'216px', top:'751px', width:'239.93px', height:'62.878px' }}>
-                <span style={{ position:'absolute', left:'16.55px', top:'21.51px', color:'#aecbfa',
-                  fontSize:'17.043px', fontFamily:"'Arimo',sans-serif", cursor:'pointer' }}>More options</span>
+              <div style={{ position:'absolute', left:'200px', top:'745px', width:'260px', height:'75px' }}>
+                <span style={{ position:'absolute', left:'16px', top:'26px', color:'#1a73e8',
+                  fontSize:'20px', fontFamily:"'Google Sans','Arimo',sans-serif", cursor:'pointer' }}>More options</span>
                 <div onClick={() => {
                   setConfirmedGroups(Array.from(checkedGroups))
                   setSelectGroupOpen(false)
                   setDialogOpen(true)
-                }} style={{ position:'absolute', left:'145.61px', top:'8.27px', width:'94.317px', height:'47.986px',
-                  background:'#aecbfa', borderRadius:'24.82px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
-                  <span style={{ color:'#18315d', fontSize:'17.043px', fontFamily:"'Arimo',sans-serif" }}>Save</span>
+                }} style={{ position:'absolute', left:'148px', top:'10px', width:'112px', height:'55px',
+                  background:'#1a73e8', borderRadius:'28px', display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer' }}>
+                  <span style={{ color:'#ffffff', fontSize:'20px', fontFamily:"'Google Sans','Arimo',sans-serif" }}>Save</span>
                 </div>
               </div>
-              {/* Bottom */}
-              <div style={{position:'absolute',background:'#373737',height:'1.121px',left:0,top:'829.9px',width:'478.5px'}} />
-              <img src="/assets/expand-completed.svg" alt="" style={{position:'absolute',left:'22.43px',top:'848.59px',width:'22.43px',height:'22.43px'}} />
-              <span style={{position:'absolute',left:'56.07px',top:'846.72px',color:'#c4c7c5',fontSize:'20.934px',fontFamily:"'Arimo',sans-serif",whiteSpace:'nowrap'}}>All group events</span>
             </div>
           ) : customizeOpen ? (
             /* ── CUSTOMIZE AVAILABILITY CONTENT ── */
@@ -605,10 +735,10 @@ export default function DefaultScreen() {
                 width:'369px',
                 display:'flex', flexDirection:'column',
                 gap:'10px', alignItems:'center', textAlign:'center',
-                fontFamily:"'Arimo',sans-serif",
+                fontFamily:"'Google Sans','Arimo',sans-serif",
               }}>
-                <p style={{color:'#e3e3e3',fontSize:'24.299px',width:'100%',margin:0}}>Editing availability</p>
-                <p style={{color:'#c4c7c5',fontSize:'20.561px',width:'100%',margin:0}}>
+                <p style={{color:'#202124',fontSize:'24.299px',width:'100%',margin:0}}>Editing availability</p>
+                <p style={{color:'#5f6368',fontSize:'20.561px',width:'100%',margin:0}}>
                   Drag the time slots that will be marked as available for your in your event poll
                 </p>
               </div>
@@ -616,42 +746,45 @@ export default function DefaultScreen() {
               <div onClick={() => { setSavedSlots(slots); setCustomizeOpen(false); setDialogOpen(true) }} style={{
                 position:'absolute', left:'157px', top:'458px',
                 width:'147px', height:'60px',
-                background:'#aecbfa', borderRadius:'31.025px',
+                background:'#1a73e8', borderRadius:'31.025px',
                 display:'flex', alignItems:'center', justifyContent:'center',
                 cursor:'pointer',
               }}>
-                <span style={{color:'#18315d',fontSize:'21.304px',fontFamily:"'Arimo',sans-serif"}}>Save</span>
+                <span style={{color:'#ffffff',fontSize:'21.304px',fontFamily:"'Google Sans','Arimo',sans-serif"}}>Save</span>
               </div>
               {/* Discard */}
               <span style={{
                 position:'absolute', left:'50%', top:'530px',
                 transform:'translateX(-50%)',
-                color:'#aecbfa', fontSize:'21.304px',
-                fontFamily:"'Arimo',sans-serif", cursor:'pointer', whiteSpace:'nowrap',
+                color:'#1a73e8', fontSize:'21.304px',
+                fontFamily:"'Google Sans','Arimo',sans-serif", cursor:'pointer', whiteSpace:'nowrap',
               }} onClick={() => {
                 setSlots(computeDefaultSlots(rangeStart, rangeEnd))
                 setCustomizeOpen(false)
                 setDialogOpen(true)
               }}>Discard</span>
               {/* Bottom */}
-              <div style={{position:'absolute',background:'#373737',height:'1.121px',left:0,top:'800px',width:'478.5px'}} />
+              <div style={{position:'absolute',background:'#dadce0',height:'1.121px',left:0,top:'800px',width:'478.5px'}} />
               <img src="/assets/expand-completed.svg" alt="" style={{position:'absolute',left:'22.43px',top:'818px',width:'22.43px',height:'22.43px'}} />
-              <span style={{position:'absolute',left:'56.07px',top:'816px',color:'#c4c7c5',fontSize:'20.934px',fontFamily:"'Arimo',sans-serif",whiteSpace:'nowrap'}}>All group events</span>
+              <span style={{position:'absolute',left:'56.07px',top:'816px',color:'#5f6368',fontSize:'20.934px',fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap'}}>All group events</span>
             </div>
           ) : savedPoll ? (
             /* ── EVENT POLL CONTENT ── */
             <div className={styles.pollingPanelContent}>
-              <div style={{position:'absolute',background:'#3d5576',borderRadius:'6px',width:'22px',height:'22px',left:'22px',top:'133px'}} />
-              <span style={{position:'absolute',left:'55px',top:'126px',color:'#dedfdf',fontSize:'28px',
-                fontFamily:"'Roboto',sans-serif",whiteSpace:'nowrap',maxWidth:'400px',overflow:'hidden',textOverflow:'ellipsis'}}>
+              <div style={{position:'absolute',background:'#3d5576',borderRadius:'6px',width:'22px',height:'22px',left:'38px',top:'133px'}} />
+              <span style={{position:'absolute',left:'71px',top:'126px',color:'#202124',fontSize:'28px',
+                fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap',maxWidth:'400px',overflow:'hidden',textOverflow:'ellipsis'}}>
                 {savedPoll.title || 'Untitled'}
               </span>
-              <div style={{position:'absolute',left:'22px',top:'185px',display:'flex',flexDirection:'column',gap:'30px',width:'440px'}}>
+              <div style={{position:'absolute',left:'38px',top:'185px',display:'flex',flexDirection:'column',gap:'40px',width:'424px'}}>
                 {(savedPoll.options || []).map((opt, i) => {
                   const checked = checkedTimeOptions.has(i)
                   const displayN = opt.n + (checked ? 1 : 0)
                   return (
-                  <div key={i} style={{display:'flex',gap:'20px',alignItems:'center'}}>
+                  <div key={i}
+                    onMouseEnter={() => setHoveredSlot(i)}
+                    onMouseLeave={() => setHoveredSlot(null)}
+                    style={{display:'flex',gap:'48px',alignItems:'center'}}>
                     <div style={{display:'flex',flexDirection:'column',gap:'8px',width:'250px',flexShrink:0}}>
                       <div style={{display:'flex',gap:'15px',alignItems:'flex-start'}}>
                         <div onClick={() => setCheckedTimeOptions(prev => {
@@ -659,22 +792,22 @@ export default function DefaultScreen() {
                           if (next.has(i)) next.delete(i); else next.add(i)
                           return next
                         })} style={{
-                          width:'22px', height:'22px',
-                          border: checked ? 'none' : '1.495px solid white',
-                          borderRadius:'2px', boxSizing:'border-box', flexShrink:0, marginTop:'2px',
+                          width:'26px', height:'26px',
+                          border: checked ? 'none' : '1.495px solid #dadce0',
+                          borderRadius:'3px', boxSizing:'border-box', flexShrink:0, marginTop:'2px',
                           background: checked ? '#1a73e8' : 'transparent',
                           display:'flex', alignItems:'center', justifyContent:'center',
                           cursor:'pointer',
                         }}>
                           {checked && <span style={{color:'white',fontSize:'14px',lineHeight:1,marginTop:'-1px'}}>✓</span>}
                         </div>
-                        <div style={{color:'white',fontSize:'18px',fontFamily:"'Inter',sans-serif",lineHeight:'1.3'}}>
-                          <p style={{margin:0,fontWeight:500}}>{opt.date}</p>
+                        <div style={{color:'#202124',fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",lineHeight:'1.3'}}>
+                          <p style={{margin:0,fontWeight:500,whiteSpace:'nowrap'}}>{opt.date}</p>
                           <p style={{margin:0}}>{opt.time}</p>
                         </div>
                       </div>
-                      <span style={{color:'#bec1bf',fontSize:'16px',fontFamily:"'Roboto',sans-serif",paddingLeft:'37px'}}>
-                        ({opt.avail + (checked ? 1 : 0)}/{opt.total} available)
+                      <span style={{color:'#5f6368',fontSize:'17px',fontFamily:"'Google Sans','Arimo',sans-serif",paddingLeft:'37px'}}>
+                        ({opt.avail}/{opt.total} available)
                       </span>
                     </div>
                     <div style={{display:'flex',gap:'16px',alignItems:'center',flexShrink:0}}>
@@ -682,26 +815,91 @@ export default function DefaultScreen() {
                       <div style={{position:'relative',width:'28px',height:'28px',flexShrink:0}}>
                         {[6,13,20].map(t=>(
                           <div key={t} style={{position:'absolute',left:'12px',top:`${t}px`,
-                            width:'4px',height:'4px',background:'#c4c7c5',borderRadius:'50%'}} />
+                            width:'4px',height:'4px',background:'#5f6368',borderRadius:'50%'}} />
                         ))}
                       </div>
                     </div>
                   </div>
                 )})}
               </div>
+              {/* Add custom time button */}
+              <div style={{position:'absolute',left:'38px',top:'580px',display:'flex',gap:'8px',alignItems:'center',cursor:'pointer'}}>
+                <img src="/assets/add-addons.svg" alt="" style={{width:'26.916px',height:'26.916px',filter:'invert(28%) sepia(99%) saturate(1234%) hue-rotate(199deg) brightness(96%) contrast(94%)'}} />
+                <span style={{color:'#1967d2',fontSize:'19px',fontFamily:"'Google Sans','Arimo',sans-serif"}}>Add custom time</span>
+              </div>
               {/* Actions */}
-              <div style={{position:'absolute',left:'216px',top:'751px',width:'239.93px',height:'62.878px'}}>
-                <span style={{position:'absolute',left:'16.55px',top:'21.51px',color:'#aecbfa',
-                  fontSize:'17.043px',fontFamily:"'Arimo',sans-serif",cursor:'pointer'}}>More options</span>
-                <div onClick={() => setPollOpen(false)} style={{position:'absolute',left:'145.61px',top:'8.27px',
-                  width:'94.317px',height:'47.986px',background:'#aecbfa',borderRadius:'24.82px',
+              <div style={{position:'absolute',left:'200px',top:'784px',width:'260px',height:'75px'}}>
+                <span style={{position:'absolute',left:'16px',top:'26px',color:'#1a73e8',
+                  fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",cursor:'pointer'}}>More options</span>
+                <div onClick={() => {
+                  const checked = (savedPoll.options || []).filter((_, i) => checkedTimeOptions.has(i))
+                  if (checked.length) setCalendarPollEvents(p => [...p, ...checked.map(opt => ({ ...opt, title: savedPoll.title }))])
+                  const pollWithVotes = { ...savedPoll, savedChecked: [...checkedTimeOptions] }
+                  setCreatedPolls(p => { const idx = p.findIndex(x => x.title === savedPoll.title); return idx >= 0 ? p.map((x,i) => i===idx ? pollWithVotes : x) : [...p, pollWithVotes] })
+                  setSavedPoll(null); setPollListOpen(true)
+                }} style={{position:'absolute',left:'148px',top:'10px',
+                  width:'112px',height:'55px',background:'#1a73e8',borderRadius:'28px',
                   display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
-                  <span style={{color:'#18315d',fontSize:'17.043px',fontFamily:"'Arimo',sans-serif"}}>done</span>
+                  <span style={{color:'#ffffff',fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif"}}>done</span>
                 </div>
               </div>
-              <div style={{position:'absolute',background:'#373737',height:'1.121px',left:0,top:'829.9px',width:'478.5px'}} />
-              <img src="/assets/expand-completed.svg" alt="" style={{position:'absolute',left:'22.43px',top:'848.59px',width:'22.43px',height:'22.43px'}} />
-              <span style={{position:'absolute',left:'56.07px',top:'846.72px',color:'#c4c7c5',fontSize:'20.934px',fontFamily:"'Arimo',sans-serif",whiteSpace:'nowrap'}}>All group events</span>
+            </div>
+          ) : (pollListOpen || createdPolls.length > 0) ? (
+            /* ── EVENT POLLS LIST VIEW (node 92-2) ── */
+            <div className={styles.pollingPanelContent}>
+              {/* Divider below header */}
+              <div style={{position:'absolute',background:'#e3e5e8',height:'1.121px',left:0,top:'82.24px',width:'478.5px'}} />
+              {/* Poll entries + Create poll button */}
+              <div style={{position:'absolute',left:'22px',top:'140px',width:'440px',display:'flex',flexDirection:'column',gap:'20px'}}>
+                {createdPolls.map((poll, i) => (
+                  <div key={i}
+                    onMouseEnter={() => setHoveredPoll(i)}
+                    onMouseLeave={() => setHoveredPoll(null)}
+                    onClick={() => { setSavedPoll(poll); setCheckedTimeOptions(new Set(poll.savedChecked || [])); setPollListOpen(false); setHoveredPoll(null) }}
+                    style={{
+                      display:'flex', gap:'13px', alignItems:'center',
+                      borderRadius:'12px', padding:'8px 10px', margin:'-8px -10px',
+                      background: hoveredPoll === i ? '#f1f3f4' : 'transparent',
+                      cursor:'pointer', transition:'background 120ms ease',
+                    }}>
+                    <div style={{width:'26px',height:'26px',background:'#3d5576',borderRadius:'6px',flexShrink:0,marginTop:'2px'}} />
+                    <div style={{display:'flex',flexDirection:'column',gap:'2px',flex:1,minWidth:0}}>
+                      <span style={{color:'#202124',fontSize:'25px',fontFamily:"'Google Sans','Arimo',sans-serif",lineHeight:1.2,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis',maxWidth:'310px'}}>{poll.title || 'Untitled'}</span>
+                      <span style={{color:'#5f6368',fontSize:'19px',fontFamily:"'Google Sans','Arimo',sans-serif"}}>Created By Anthony</span>
+                      <span style={{color:'#1967d2',fontSize:'19px',fontFamily:"'Google Sans','Arimo',sans-serif"}}>4 members</span>
+                    </div>
+                    <img
+                      src={hiddenPolls.has(poll.title) ? '/assets/poll-hidden.svg' : '/assets/poll-visible.svg'}
+                      alt="toggle visibility"
+                      onClick={e => {
+                        e.stopPropagation()
+                        setHiddenPolls(prev => {
+                          const n = new Set(prev)
+                          if (n.has(poll.title)) n.delete(poll.title); else n.add(poll.title)
+                          return n
+                        })
+                      }}
+                      style={{width:'32px',height:'32px',flexShrink:0,alignSelf:'center',marginRight:'8px',cursor:'pointer',opacity:0.75}}
+                    />
+                  </div>
+                ))}
+                {/* Create poll button — below existing polls */}
+                <div onClick={() => { setPollListOpen(false); setDialogOpen(true) }}
+                  style={{display:'flex',gap:'8px',alignItems:'center',cursor:'pointer',alignSelf:'flex-start',marginTop:'4px'}}>
+                  <img src="/assets/add-addons.svg" alt="" style={{width:'26.916px',height:'26.916px',filter:'invert(28%) sepia(99%) saturate(1234%) hue-rotate(199deg) brightness(96%) contrast(94%)'}} />
+                  <span style={{color:'#1967d2',fontSize:'19px',fontFamily:"'Google Sans','Arimo',sans-serif"}}>Create new poll</span>
+                </div>
+              </div>
+              {/* Actions */}
+              <div style={{position:'absolute',left:'200px',top:'784px',width:'260px',height:'75px'}}>
+                <span style={{position:'absolute',left:'16px',top:'26px',color:'#0b57d0',
+                  fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",cursor:'pointer'}}>More options</span>
+                <div onClick={() => { setPollListOpen(false); setPollOpen(false) }} style={{position:'absolute',left:'148px',top:'10px',
+                  width:'112px',height:'55px',background:'#0b57d0',borderRadius:'28px',
+                  display:'flex',alignItems:'center',justifyContent:'center',cursor:'pointer'}}>
+                  <span style={{color:'#ffffff',fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif"}}>done</span>
+                </div>
+              </div>
             </div>
           ) : (
             /* ── EMPTY STATE CONTENT ── */
@@ -712,25 +910,25 @@ export default function DefaultScreen() {
                 width:'369px',
                 display:'flex', flexDirection:'column',
                 gap:'10px', alignItems:'center', textAlign:'center',
-                fontFamily:"'Arimo',sans-serif",
+                fontFamily:"'Google Sans','Arimo',sans-serif",
               }}>
-                <p style={{color:'#e3e3e3',fontSize:'24.299px',width:'100%',margin:0}}>No active polls</p>
-                <p style={{color:'#c4c7c5',fontSize:'20.561px',width:'100%',margin:0}}>
+                <p style={{color:'#202124',fontSize:'24.299px',width:'100%',margin:0}}>No active polls</p>
+                <p style={{color:'#5f6368',fontSize:'20.561px',width:'100%',margin:0}}>
                   Create a poll and add people to decide when to schedule your events
                 </p>
               </div>
               <div style={{
                 position:'absolute', left:'131px', top:'410px',
                 width:'195px', height:'40px',
-                background:'#a8c7fa', borderRadius:'39px',
+                background:'#1a73e8', borderRadius:'39px',
                 display:'flex', alignItems:'center', justifyContent:'center',
                 cursor:'pointer',
               }} onClick={() => setDialogOpen(true)}>
-                <span style={{color:'#0a3273',fontSize:'18px',fontWeight:500,fontFamily:"'Arimo',sans-serif"}}>Create poll</span>
+                <span style={{color:'#ffffff',fontSize:'18px',fontWeight:500,fontFamily:"'Google Sans','Arimo',sans-serif"}}>Create poll</span>
               </div>
-              <div style={{position:'absolute',background:'#373737',height:'1.121px',left:0,top:'800px',width:'478.5px'}} />
+              <div style={{position:'absolute',background:'#dadce0',height:'1.121px',left:0,top:'800px',width:'478.5px'}} />
               <img src="/assets/expand-completed.svg" alt="" style={{position:'absolute',left:'22.43px',top:'818px',width:'22.43px',height:'22.43px'}} />
-              <span style={{position:'absolute',left:'56.07px',top:'816px',color:'#c4c7c5',fontSize:'20.934px',fontFamily:"'Arimo',sans-serif",whiteSpace:'nowrap'}}>All group events</span>
+              <span style={{position:'absolute',left:'56.07px',top:'816px',color:'#5f6368',fontSize:'20.934px',fontFamily:"'Google Sans','Arimo',sans-serif",whiteSpace:'nowrap'}}>All group events</span>
             </div>
           )}
         </div>
@@ -742,29 +940,12 @@ export default function DefaultScreen() {
             addedGroups={confirmedGroups}
             onClose={() => setDialogOpen(false)}
             onSave={({ title, startDate, endDate }) => {
-              const days = []
-              if (startDate && endDate) {
-                const d = new Date(startDate)
-                const mockTimes = ['12:00 – 1:00pm', '2:00 – 3:00pm', '4:00 – 5:00pm']
-                const mockN    = [4, 3, 3]
-                const mockAvail = [7, 7, 6]
-                while (d <= endDate && days.length < 3) {
-                  days.push({
-                    date:  d.toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' }),
-                    time:  mockTimes[days.length],
-                    avail: mockAvail[days.length],
-                    total: 9,
-                    n:     mockN[days.length],
-                  })
-                  d.setDate(d.getDate() + 1)
-                }
-              }
-              if (days.length === 0) days.push(
-                { date:'Monday, November 9',    time:'12:00 – 1:00pm', avail:7, total:9, n:4 },
-                { date:'Wednesday, November 11',time:'12:00 – 1:00pm', avail:7, total:9, n:3 },
-                { date:'Thursday, November 12', time:'3:00 – 4:00pm',  avail:6, total:9, n:3 },
-              )
-              setSavedPoll({ title, options: days })
+              const days = [
+                { date:'Monday, November 9',    time:'12:00 – 1:00pm', avail:3, total:4, n:0 },
+                { date:'Wednesday, November 11',time:'12:00 – 1:00pm', avail:3, total:4, n:0 },
+                { date:'Thursday, November 12', time:'8:00 – 9:00am',  avail:2, total:4, n:0 },
+              ]
+              setSavedPoll({ title, options: days, startDate, endDate })
               setCheckedTimeOptions(new Set())
               setDialogOpen(false)
             }}
@@ -775,7 +956,7 @@ export default function DefaultScreen() {
               setRangeEnd(endDate)
               initSlots(startDate, endDate)
             }}
-            onAddGroup={() => { setDialogOpen(false); setSelectGroupOpen(true) }}
+
           />
         </div>
       )}
@@ -787,39 +968,198 @@ export default function DefaultScreen() {
         <img src="/assets/group4.svg"     alt="" style={{left:'27.77px',top:'195.54px',width:'22.001px',height:'26.014px'}} />
         <img src="/assets/mask-group.svg" alt="" style={{left:'27.76px',top:'278.54px',width:'22.027px',height:'28.21px'}} />
 
-        {/* Poll icon highlight circle (shown when open) */}
-        {pollOpen && (
-          <img src="/assets/ellipse1.svg" alt=""
-            style={{position:'absolute',left:'8.77px',top:'329.54px',width:'59px',height:'59px'}} />
-        )}
-
-        {/* Chart bars — clickable poll icon */}
+        {/* Poll icon — clickable, with selected bg */}
         <div
           onClick={() => setPollOpen(p => !p)}
-          style={{position:'absolute',left:'8px',top:'329px',width:'59px',height:'55px',cursor:'pointer'}}
+          style={{
+            position:'absolute', left:'8px', top:'329px',
+            width:'59px', height:'59px', cursor:'pointer',
+            borderRadius:'50%',
+            background: pollOpen ? '#E8EAED' : 'transparent',
+            display:'flex', alignItems:'center', justifyContent:'center',
+          }}
           title="Group Event Polling"
         >
-          <div style={{position:'absolute',background:'#678df2',width:'24.973px',height:'4.919px',left:'17.77px',top:'37.08px',
-            borderBottomLeftRadius:'10px',borderBottomRightRadius:'10px'}} />
-          <div style={{position:'absolute',display:'flex',width:'7.568px',height:'21.568px',alignItems:'center',justifyContent:'center',left:'35.17px',top:'14.54px'}}>
-            <div style={{transform:'rotate(90deg)',background:'#2c59cd',width:'21.568px',height:'7.568px',borderTopLeftRadius:'10px',borderBottomLeftRadius:'10px'}} />
-          </div>
-          <div style={{position:'absolute',display:'flex',width:'7.568px',height:'17.784px',alignItems:'center',justifyContent:'center',left:'26.47px',top:'18.33px'}}>
-            <div style={{transform:'rotate(90deg)',background:'#4e88ff',width:'17.784px',height:'7.568px',borderTopLeftRadius:'10px',borderBottomLeftRadius:'10px'}} />
-          </div>
-          <div style={{position:'absolute',display:'flex',width:'7.568px',height:'12.865px',alignItems:'center',justifyContent:'center',left:'17.77px',top:'23.25px'}}>
-            <div style={{transform:'rotate(90deg)',background:'#8c9eff',width:'12.865px',height:'7.568px',borderTopLeftRadius:'10px',borderBottomLeftRadius:'10px'}} />
-          </div>
+          <svg width="25" height="28" viewBox="0 0 25 28" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:'block',flexShrink:0}}>
+            <path d="M0 23.0811H24.973C24.973 25.7977 22.7707 28 20.0541 28H4.91892C2.20227 28 0 25.7977 0 23.0811Z" fill="#678DF2"/>
+            <path d="M21.1889 0C23.2786 0 24.9727 1.69406 24.9727 3.78378V21.5676H17.4051V3.78379C17.4051 1.69406 19.0991 0 21.1889 0Z" fill="#2C59CD"/>
+            <path d="M12.4867 3.78381C14.5764 3.78381 16.2705 5.47787 16.2705 7.5676V21.5676H8.70293V7.5676C8.70293 5.47787 10.397 3.78381 12.4867 3.78381Z" fill="#4E88FF"/>
+            <path d="M3.7836 8.70276C5.87332 8.70276 7.56738 10.3968 7.56738 12.4865V21.5676H-0.000190258V12.4865C-0.000190258 10.3968 1.69387 8.70276 3.7836 8.70276Z" fill="#8C9EFF"/>
+          </svg>
         </div>
 
         {/* Blue selected indicator bar */}
         {pollOpen && (
-          <div style={{position:'absolute',background:'#8ab4f8',width:'3.738px',height:'52.336px',left:'-4px',top:'335px'}} />
+          <div style={{position:'absolute',background:'#1a73e8',width:'3.738px',height:'52.336px',left:'-4px',top:'335px'}} />
         )}
 
         <img src="/assets/add-addons.svg"  alt="" style={{left:'22.43px',top:'431.21px',width:'29.906px',height:'29.906px'}} />
         <img src="/assets/information.svg" alt="" style={{left:'18.69px',top:'844.85px',width:'29.906px',height:'29.906px'}} />
       </div>
+
+      {/* ── PENDING EVENT DETAIL POPUP ── */}
+      {pendingEventPopup && (() => {
+        const { poll, colIdx: evtColIdx } = pendingEventPopup
+        const opts = poll.options || []
+        const checked = new Set(poll.savedChecked || [])
+        const popW = 620, popH = 220 + opts.length * 110 + Math.max(0, opts.length - 1) * 35 + 70
+        const weekCalLeft = pollOpen ? 381.3 : 380.71
+        const cardRight = weekCalLeft + nX(DIVIDERS[evtColIdx + 1])
+        const spaceRight = 1911 - cardRight - 20
+        const popX = spaceRight >= popW ? cardRight + 15 : weekCalLeft + nX(DIVIDERS[evtColIdx]) - popW - 15
+        const popY = Math.max(20, (1000.29 - popH) / 2)
+
+        function DonutChart({ avail, total }) {
+          const size = 92, cx = 46, r = 36, sw = 10
+          const circ = 2 * Math.PI * r
+          const filled = total > 0 ? (avail / total) * circ : 0
+          return (
+            <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+              <circle cx={cx} cy={cx} r={r} fill="none" stroke="#DEE3EA" strokeWidth={sw} />
+              <circle cx={cx} cy={cx} r={r} fill="none" stroke="#1A73E8" strokeWidth={sw}
+                strokeDasharray={`${filled} ${circ - filled}`} strokeLinecap="round"
+                transform={`rotate(-90 ${cx} ${cx})`} />
+              <text x={cx} y={cx} textAnchor="middle" dominantBaseline="central"
+                fill="#1967d2" fontSize="19" fontFamily="'Google Sans','Arimo',sans-serif" fontWeight="500">
+                {avail}/{total}
+              </text>
+            </svg>
+          )
+        }
+
+        return (
+          <>
+            <div onClick={() => setPendingEventPopup(null)}
+              style={{position:'fixed',inset:0,zIndex:300,background:'transparent'}} />
+            <div style={{
+              position:'fixed', left:`${popX}px`, top:`${popY}px`,
+              width:`${popW}px`, height:`${popH}px`, background:'#f1f4f9', borderRadius:'40px',
+              boxShadow:'0 2px 3.5px rgba(0,0,0,0.25)', zIndex:301,
+              fontFamily:"'Google Sans','Arimo',sans-serif",
+            }} onClick={e => e.stopPropagation()}>
+              {/* Top-right action icons */}
+              {[
+                {src:'/assets/edit-event.svg',       x:368},
+                {src:'/assets/delete-event.svg',     x:418},
+                {src:'/assets/email-guests.svg',     x:468},
+                {src:'/assets/more-event-options.svg',x:518},
+              ].map(({src,x}) => (
+                <img key={x} src={src} alt="" style={{position:'absolute',left:`${x}px`,top:'30px',width:'26px',height:'26px'}} />
+              ))}
+              <img src="/assets/close-event.svg" alt="" onClick={() => setPendingEventPopup(null)}
+                style={{position:'absolute',left:'568px',top:'30px',width:'26px',height:'26px',cursor:'pointer'}} />
+
+              {/* Color square + title */}
+              <div style={{position:'absolute',left:'62px',top:'100px',width:'21px',height:'21px',background:'#3d5372',borderRadius:'5px'}} />
+              <p style={{position:'absolute',left:'98px',top:'91px',margin:0,fontSize:'34px',color:'#303432',whiteSpace:'nowrap'}}>{poll.title || 'Untitled'}</p>
+              <p style={{position:'absolute',left:'98px',top:'137px',margin:0,fontSize:'20.5px',color:'#303432'}}>Created by Anthony</p>
+
+              {/* Members row */}
+              <div style={{position:'absolute',left:'98px',top:'167px',display:'flex',gap:'7px',alignItems:'center'}}>
+                <img src="/assets/people-group.svg" alt="" style={{width:'23px',height:'19px'}} />
+                <span style={{fontSize:'19px',color:'#5f6368'}}>4 members</span>
+              </div>
+
+              {/* Options */}
+              <div style={{position:'absolute',left:'62px',top:'220px',display:'flex',flexDirection:'column',gap:'35px',width:'429px'}}>
+                {opts.map((opt, i) => (
+                  <div key={i} style={{display:'flex',gap:'43px',alignItems:'center',width:'100%'}}>
+                    {/* Left: checkbox + date/time + available */}
+                    <div style={{display:'flex',flexDirection:'column',gap:'8px',width:'253px',flexShrink:0}}>
+                      <div style={{display:'flex',gap:'15px',alignItems:'center'}}>
+                        <div style={{
+                          width:'26.916px',height:'26.916px',flexShrink:0,boxSizing:'border-box',
+                          border: checked.has(i) ? 'none' : '1.495px solid #5f6368',
+                          borderRadius:'1.495px',
+                          background: checked.has(i) ? '#1a73e8' : 'transparent',
+                          display:'flex',alignItems:'center',justifyContent:'center',
+                        }}>
+                          {checked.has(i) && (
+                            <svg width="15" height="12" viewBox="0 0 15 12" fill="none">
+                              <path d="M0.900391 6.46069L4.87231 10.4326L13.6105 0.900002" stroke="#ffffff" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                          )}
+                        </div>
+                        <div style={{fontSize:'20px',color:'#202124',lineHeight:'1.22'}}>
+                          <p style={{margin:0}}>{opt.date}</p>
+                          <p style={{margin:0}}>{opt.time}</p>
+                        </div>
+                      </div>
+                      <div style={{textAlign:'center',paddingRight:'50px'}}>
+                        <span style={{fontSize:'19px',color:'#5f6368'}}>({opt.avail}/{opt.total} available)</span>
+                      </div>
+                    </div>
+
+                    {/* Right: donut + fraction + three dots */}
+                    {(() => {
+                      const votes = checked.has(i) ? 1 : 0
+                      return (
+                        <div style={{display:'flex',gap:'21px',alignItems:'center',flexShrink:0}}>
+                          <div style={{flexShrink:0}}>
+                            <DonutChart avail={votes} total={opt.total} />
+                          </div>
+                          <img src="/assets/meeting-notes-options.svg" alt="" style={{width:'28px',height:'28px',flexShrink:0}} />
+                        </div>
+                      )
+                    })()}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )
+      })()}
+
+      {/* Availability tooltip */}
+      {availTooltip && (() => {
+        const avail  = DEMO_PEOPLE.slice(0, availTooltip.available)
+        const await_ = DEMO_PEOPLE.slice(availTooltip.available)
+        return (
+          <div style={{
+            position:'fixed', left:`${availTooltip.x}px`, top:`${availTooltip.y}px`,
+            background:'#f0f4f9', borderRadius:'24px',
+            boxShadow:'0px 4px 11.7px 0px rgba(0,0,0,0.19)',
+            padding:'26px 32px', width:'330px', zIndex:300, pointerEvents:'none',
+            fontFamily:"'Google Sans','Arimo',sans-serif",
+          }}>
+            {/* Header */}
+            <div style={{display:'flex',gap:'9px',alignItems:'center',marginBottom:'18px'}}>
+              <img src="/assets/people-available.svg" alt="" style={{width:'28px',height:'23px'}} />
+              <span style={{color:'#5f6368',fontSize:'23px'}}>Available</span>
+              <span style={{color:'#1967d2',fontSize:'21px'}}>{availTooltip.available}/{availTooltip.total}</span>
+            </div>
+            {/* Available people */}
+            <div style={{display:'flex',flexDirection:'column',gap:'13px',marginBottom: await_.length ? '20px' : 0}}>
+              {avail.map((p,i) => (
+                <div key={i} style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                  <div style={{width:'34px',height:'34px',borderRadius:'17px',background:p.color,
+                    display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                    <span style={{color:'#fff',fontSize:'18px'}}>{p.initial}</span>
+                  </div>
+                  <span style={{color:'#5f6368',fontSize:'18px',whiteSpace:'nowrap'}}>{p.email}</span>
+                </div>
+              ))}
+            </div>
+            {/* Awaiting section */}
+            {await_.length > 0 && (
+              <>
+                <div style={{color:'#5f6368',fontSize:'23px',marginBottom:'13px'}}>Unavailable</div>
+                <div style={{display:'flex',flexDirection:'column',gap:'13px'}}>
+                  {await_.map((p,i) => (
+                    <div key={i} style={{display:'flex',gap:'8px',alignItems:'center'}}>
+                      <div style={{width:'34px',height:'34px',borderRadius:'17px',background:'#9e9e9e',
+                        display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
+                        <span style={{color:'#fff',fontSize:'18px'}}>{p.initial}</span>
+                      </div>
+                      <span style={{color:'#afb2b6',fontSize:'16px',whiteSpace:'nowrap'}}>{p.email}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )
+      })()}
 
     </div>
   )
@@ -831,12 +1171,13 @@ function DonutChart({ numerator, denominator }) {
   const filled = denominator > 0 ? (numerator / denominator) * circ : 0
   return (
     <svg width={size} height={size} style={{ flexShrink:0 }}>
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#3c4043" strokeWidth="10" />
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#a8c7fa" strokeWidth="10"
-        strokeDasharray={`${filled} ${circ - filled}`} strokeLinecap="round"
-        transform={`rotate(-90 ${cx} ${cy})`} />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#e8eaed" strokeWidth="10" />
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke="#1a73e8" strokeWidth="10"
+        strokeDasharray={circ} strokeDashoffset={circ - filled} strokeLinecap="round"
+        transform={`rotate(-90 ${cx} ${cy})`}
+        style={{ transition: 'stroke-dashoffset 0.55s cubic-bezier(0.4,0,0.2,1)' }} />
       <text x={cx} y={cy} textAnchor="middle" dominantBaseline="central"
-        fill="#a8c7fa" fontSize="20" fontFamily="'Roboto',sans-serif" fontWeight="500">
+        fill="#1a73e8" fontSize="20" fontFamily="'Google Sans','Arimo',sans-serif" fontWeight="500">
         {numerator}/{denominator}
       </text>
     </svg>
@@ -852,14 +1193,14 @@ function Ev({ bg, h, l, t, w, tc, s, bold, firstBold, lines, border, children })
       ...(border ? {border} : {}),
     }}>
       {lines ? (
-        <div style={{position:'absolute',left:'7.46px',top:'3.73px',color:tc,fontSize:`${s}px`,whiteSpace:'nowrap'}}>
+        <div style={{position:'absolute',left:'7.46px',top:'3.73px',color:tc,fontSize:`${s * 1.1}px`,whiteSpace:'nowrap'}}>
           {lines.map((line,i) => (
-            <p key={i} style={{lineHeight:'20.528px',margin:0,fontWeight:(bold||(firstBold&&i===0))?700:400}}>{line}</p>
+            <p key={i} style={{lineHeight:'20.528px',margin:0,fontWeight:(bold||(firstBold&&i===0))?600:400}}>{line}</p>
           ))}
         </div>
       ) : (
-        <span style={{position:'absolute',left:'7.46px',top:'3.73px',color:tc,fontSize:`${s}px`,
-          whiteSpace:'nowrap',lineHeight:'20.528px',fontWeight:bold?700:400}}>{children}</span>
+        <span style={{position:'absolute',left:'7.46px',top:'3.73px',color:tc,fontSize:`${s * 1.1}px`,
+          whiteSpace:'nowrap',lineHeight:'20.528px',fontWeight:bold?600:400}}>{children}</span>
       )}
     </div>
   )
