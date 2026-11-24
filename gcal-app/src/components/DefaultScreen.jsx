@@ -1119,7 +1119,7 @@ export default function DefaultScreen() {
                   fontSize:'20px',fontFamily:"'Google Sans','Arimo',sans-serif",cursor:'pointer'}}>Edit</span>
                 <div onClick={() => {
                   const checked = (savedPoll.options || []).filter((_, i) => checkedTimeOptions.has(i))
-                  if (checked.length) setCalendarPollEvents(p => [...p, ...checked.map(opt => ({ ...opt, title: savedPoll.title }))])
+                  setCalendarPollEvents(p => [...p.filter(evt => evt.title !== savedPoll.title), ...checked.map(opt => ({ ...opt, title: savedPoll.title }))])
                   const pollWithVotes = { ...savedPoll, savedChecked: [...checkedTimeOptions] }
                   setCreatedPolls(p => { const idx = p.findIndex(x => x.title === savedPoll.title); return idx >= 0 ? p.map((x,i) => i===idx ? pollWithVotes : x) : [...p, pollWithVotes] })
                   setSavedPoll(null); setPollListOpen(true)
